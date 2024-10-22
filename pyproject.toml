@@ -11,6 +11,26 @@ pydantic = "^2.9.2"
 fastapi = "^0.115.2"
 
 
+[tool.poetry.group.dev.dependencies]
+pre-commit = "^4.0.1"
+ruff = "^0.7.0"
+
 [build-system]
 requires = ["poetry-core"]
 build-backend = "poetry.core.masonry.api"
+
+[tool.ruff.lint]
+extend-select = [
+    "I",   # isort
+    "PL",  # Pylint
+    "N",   # pep8-naming
+    "ANN", # flake8-annotations
+]
+
+ignore = [
+    "ANN002", # missing-type-args
+    "ANN003", # missing-type-kwargs
+    "ANN101", # missing-type-self
+    "ANN102", # missing-type-cls
+    "ANN401", # any-type
+]
