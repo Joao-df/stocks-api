@@ -1,3 +1,4 @@
+import logging
 from datetime import date
 from functools import lru_cache
 from typing import Any, List
@@ -23,6 +24,7 @@ from stocks_api.models.stock.performance_data import PerformanceData
 from stocks_api.models.stock.stock import Stock
 from stocks_api.models.stock.stock_values import StockValues
 
+logger: logging.Logger = logging.getLogger()
 OPEN_CLOSE_ENDPOINT = (
     "/v1/open-close/{stock_symbol}/{date}?adjusted=true&apiKey={api_key}"
 )
@@ -138,10 +140,15 @@ class ApiStockRepository:
             case 200:
                 return response_data.json()
             case 404:
-                raise HTTPException(
-                    status_code=404, detail=f"Stock {stock_symbol} not found"
-                )
+                detail = f"Stock {stock_symbol} not found"
+                logger.warning(detail)
+                raise HTTPException(status_code=404, detail=detail)
             case _:
+                logger.error(
+                    "Request failed for %s. Returned data: %s",
+                    stock_symbol,
+                    response_data.json(),
+                )
                 raise HTTPException(
                     status_code=500, detail="Internal error. Please contact support."
                 )
