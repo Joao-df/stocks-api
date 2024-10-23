@@ -1,9 +1,11 @@
+import asyncio
 import logging
+from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 from functools import lru_cache
 from typing import Any, List
 
-import requests
+import httpx
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 from fastapi import Depends, HTTPException
@@ -32,6 +34,7 @@ OPEN_CLOSE_ENDPOINT = (
     "/v1/open-close/{stock_symbol}/{date}?adjusted=true&apiKey={api_key}"
 )
 STOCK_DETAILS_ENDPOINT = "/investing/stock/{stock_symbol}"
+executor = ThreadPoolExecutor(max_workers=5)
 
 
 class CatchByBotDetectionError(Exception): ...
@@ -106,8 +109,16 @@ class ScrapingStockRepository:
         finally:
             driver.quit()
 
-    def get_stock_performance_by_symbol(self, stock_symbol: str) -> PerformanceData:
-        stock_page: BeautifulSoup = self._get_stock_page_html(stock_symbol)
+    async def _async_get_stock_page_html(self, stock_symbol: str) -> BeautifulSoup:
+        loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
+        return await loop.run_in_executor(
+            executor, self._get_stock_page_html, stock_symbol
+        )
+
+    async def get_stock_performance_by_symbol(
+        self, stock_symbol: str
+    ) -> PerformanceData:
+        stock_page: BeautifulSoup = await self._async_get_stock_page_html(stock_symbol)
         performance_div = stock_page.find("div", class_="performance")
         table_rows = performance_div.find_all("tr", class_="table__row")
 
@@ -118,8 +129,10 @@ class ScrapingStockRepository:
 
         return PerformanceData.model_validate(performance_data)
 
-    def get_stock_competitors_by_symbol(self, stock_symbol: str) -> list[Competitor]:
-        stock_page: BeautifulSoup = self._get_stock_page_html(stock_symbol)
+    async def get_stock_competitors_by_symbol(
+        self, stock_symbol: str
+    ) -> list[Competitor]:
+        stock_page: BeautifulSoup = await self._async_get_stock_page_html(stock_symbol)
         competitors_div = stock_page.find("div", class_="Competitors")
         table_rows = competitors_div.find("tbody").find_all("tr")
         return [
@@ -134,8 +147,8 @@ class ScrapingStockRepository:
             for table_row in table_rows
         ]
 
-    def get_company_name_by_symbol(self, stock_symbol: str) -> str:
-        stock_page: BeautifulSoup = self._get_stock_page_html(stock_symbol)
+    async def get_company_name_by_symbol(self, stock_symbol: str) -> str:
+        stock_page: BeautifulSoup = await self._async_get_stock_page_html(stock_symbol)
         return stock_page.find("h1", class_="company__name").text
 
 
@@ -143,11 +156,13 @@ class ApiStockRepository:
     def __init__(self, settings: Settings) -> None:
         self.settings: Settings = settings
 
-    def get_daily_open_close_sotck(
+    async def get_daily_open_close_sotck(
         self, stock_symbol: str, date: date
     ) -> dict[str, Any]:
         uri: str = f"{self.settings.polygon_base_url}{OPEN_CLOSE_ENDPOINT.format(stock_symbol=stock_symbol, date=date, api_key=self.settings.polygon_api_key)}"
-        response_data: requests.Response = requests.get(uri)
+        async with httpx.AsyncClient() as client:
+            response_data: httpx.Response = await client.get(uri)
+
         match response_data.status_code:
             case 200:
                 return response_data.json()
@@ -181,16 +196,26 @@ class CompositeStockRepository:
             scraping_stock_repository
         )
 
-    def get_stock_by_symbol(self, stock_symbol: str, date: date) -> Stock:
-        daily_open_close_data = self.api_stock_repository.get_daily_open_close_sotck(
-            stock_symbol, date
+    async def get_stock_by_symbol(self, stock_symbol: str, date: date) -> Stock:
+        daily_open_close_data = (
+            await self.api_stock_repository.get_daily_open_close_sotck(
+                stock_symbol, date
+            )
         )
 
         stock_values: StockValues = StockValues.model_validate(daily_open_close_data)
         performance_data: PerformanceData = (
-            self.scraping_stock_repository.get_stock_performance_by_symbol(stock_symbol)
+            await self.scraping_stock_repository.get_stock_performance_by_symbol(
+                stock_symbol
+            )
         )
-        competitors = self.scraping_stock_repository.get_stock_competitors_by_symbol(
+        competitors: List[
+            Competitor
+        ] = await self.scraping_stock_repository.get_stock_competitors_by_symbol(
+            stock_symbol=stock_symbol
+        )
+
+        company_name = await self.scraping_stock_repository.get_company_name_by_symbol(
             stock_symbol=stock_symbol
         )
 
@@ -198,9 +223,7 @@ class CompositeStockRepository:
             "status": daily_open_close_data.get("status"),
             "request_data": daily_open_close_data.get("from"),
             "company_code": daily_open_close_data.get("symbol"),
-            "company_name": self.scraping_stock_repository.get_company_name_by_symbol(
-                stock_symbol=stock_symbol
-            ),
+            "company_name": company_name,
             "stock_values": stock_values,
             "performance_data": performance_data,
             "competitors": competitors,

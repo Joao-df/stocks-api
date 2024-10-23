@@ -14,11 +14,11 @@ def get_yesterday() -> date:
 
 
 @router.get("/{stock_symbol}")
-def get_stock(
+async def get_stock(
     stock_symbol: str,
     date: date = get_yesterday(),
     stock_repository: CompositeStockRepository = Depends(),
 ) -> Stock:
-    return StockService(
+    return await StockService(
         stock_repository=stock_repository,
     ).get_stock_by_symbol(stock_symbol=stock_symbol, date=date)
