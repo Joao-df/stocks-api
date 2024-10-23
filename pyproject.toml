@@ -10,6 +10,9 @@ python = "^3.11"
 pydantic = "^2.9.2"
 fastapi = { extras = ["standard"], version = "^0.115.2" }
 pydantic-settings = "^2.6.0"
+tenacity = "^9.0.0"
+selenium = "^4.25.0"
+beautifulsoup4 = "^4.12.3"
 
 
 [tool.poetry.group.dev.dependencies]

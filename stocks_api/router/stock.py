@@ -1,10 +1,9 @@
 from datetime import date, datetime, timedelta
-from typing import Annotated
 
 from fastapi import APIRouter, Depends
 
-from stocks_api.app_config import Settings, get_settings
 from stocks_api.models.stock.stock import Stock
+from stocks_api.repository.stock import CompositeStockRepository
 from stocks_api.service.stock import StockService
 
 router = APIRouter(prefix="/stock", tags=["stock"])
@@ -16,11 +15,10 @@ def get_yesterday() -> date:
 
 @router.get("/{stock_symbol}")
 def get_stock(
-    settings: Annotated[Settings, Depends(get_settings)],
     stock_symbol: str,
     date: date = get_yesterday(),
+    stock_repository: CompositeStockRepository = Depends(),
 ) -> Stock:
     return StockService(
-        polygon_api_key=settings.polygon_api_key,
-        polygon_base_url=settings.polygon_base_url,
+        stock_repository=stock_repository,
     ).get_stock_by_symbol(stock_symbol=stock_symbol, date=date)
