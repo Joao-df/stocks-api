@@ -98,9 +98,6 @@ class ScrapingStockRepository:
             self._close_subscriber_banner(driver)
             page_html: str = driver.page_source
             return BeautifulSoup(page_html, "html.parser")
-        except Exception as exp:
-            print(driver.page_source)
-            raise exp
         finally:
             driver.quit()
 
