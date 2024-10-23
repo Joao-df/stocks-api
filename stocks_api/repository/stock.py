@@ -12,6 +12,8 @@ from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
 from tenacity import (
+    after_log,
+    before_log,
     retry,
     retry_if_exception_type,
     stop_after_attempt,
@@ -84,6 +86,8 @@ class ScrapingStockRepository:
         stop=stop_after_attempt(5),
         wait=wait_random(min=1, max=2),
         retry=retry_if_exception_type(CatchByBotDetectionError),
+        before=before_log(logger, logging.INFO),
+        after=after_log(logger, logging.INFO),
     )
     def _get_stock_page_html(self, stock_symbol: str) -> BeautifulSoup:
         driver = webdriver.Chrome(self._chrome_options)
@@ -93,6 +97,7 @@ class ScrapingStockRepository:
             driver.get(uri)
 
             if self._is_captcha_open(driver):
+                logger.warning("Catch by bot detection.")
                 raise CatchByBotDetectionError()
 
             self._close_subscriber_banner(driver)
