@@ -19,6 +19,7 @@ from tenacity import (
 )
 
 from stocks_api.app_config import Settings, get_settings
+from stocks_api.common.currency_utils import convert_currency_string
 from stocks_api.models.stock.competitor import Competitor
 from stocks_api.models.stock.performance_data import PerformanceData
 from stocks_api.models.stock.stock import Stock
@@ -97,6 +98,9 @@ class ScrapingStockRepository:
             self._close_subscriber_banner(driver)
             page_html: str = driver.page_source
             return BeautifulSoup(page_html, "html.parser")
+        except Exception as exp:
+            print(driver.page_source)
+            raise exp
         finally:
             driver.quit()
 
@@ -116,9 +120,15 @@ class ScrapingStockRepository:
         stock_page: BeautifulSoup = self._get_stock_page_html(stock_symbol)
         competitors_div = stock_page.find("div", class_="Competitors")
         table_rows = competitors_div.find("tbody").find_all("tr")
-
         return [
-            Competitor(name=table_row.find("a", class_="link").text)
+            Competitor.model_validate(
+                {
+                    "name": table_row.find("a", class_="link").text,
+                    "market_cap": convert_currency_string(
+                        table_row.find_all("td")[2].text
+                    ),
+                }
+            )
             for table_row in table_rows
         ]
 
