@@ -6,12 +6,15 @@ from typing import Any
 
 from fastapi import FastAPI, Request
 
+from stocks_api.cache import cache_lifespan
 from stocks_api.log_config import LogConfig
 from stocks_api.router.stock import router as stock_router
 
 dictConfig(LogConfig().model_dump())
 logger: logging.Logger = logging.getLogger()
-app = FastAPI(title="stocks")
+
+
+app = FastAPI(title="stocks", lifespan=cache_lifespan)
 
 
 @app.middleware("http")

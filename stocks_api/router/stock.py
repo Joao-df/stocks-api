@@ -2,6 +2,7 @@ from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter, Depends
 
+from stocks_api.cache import default_cache
 from stocks_api.models.stock.stock import Stock
 from stocks_api.repository.stock import CompositeStockRepository
 from stocks_api.service.stock import StockService
@@ -14,6 +15,7 @@ def get_yesterday() -> date:
 
 
 @router.get("/{stock_symbol}")
+@default_cache()
 async def get_stock(
     stock_symbol: str,
     date: date = get_yesterday(),

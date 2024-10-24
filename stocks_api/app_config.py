@@ -9,6 +9,8 @@ class Settings(BaseSettings):
     marketwatch_base_url: str = "https://www.marketwatch.com"
     remote_chrome_webdriver_address: str = "http://chrome:4444"
     selenium_headless_mode: bool = True
+    redis_url: str = "redis://cache"
+    default_caching_time: int = 60
 
     model_config = SettingsConfigDict(env_file=".env")
 
