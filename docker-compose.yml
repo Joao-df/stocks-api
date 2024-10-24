@@ -4,7 +4,30 @@ services:
     build:
       dockerfile: ./Dockerfile
       context: .
+    env_file:
+      - .env
     ports:
       - "8000:8000"
     profiles:
       - prod
+    networks:
+      - default
+    depends_on:
+      - selenium-webdriver
+  selenium-webdriver:
+    image: selenium/standalone-chrome:latest
+    restart: always
+    hostname: chrome
+    privileged: true
+    shm_size: 2g
+    ports:
+      - 4444:4444
+      - 7900:7900
+    networks:
+      - default
+
+networks:
+  default:
+    name: local-network
+    external: true
+    driver: bridge

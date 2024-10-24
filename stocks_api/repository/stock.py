@@ -47,8 +47,9 @@ class ScrapingStockRepository:
     @property
     def _chrome_options(self) -> Options:
         options = webdriver.ChromeOptions()
-        # run in headless mode
-        options.add_argument("--headless=new")
+        if self.settings.selenium_headless_mode:
+            # run in headless mode
+            options.add_argument("--headless=new")
 
         # run in incognito mode
         options.add_argument("--incognito")
@@ -93,7 +94,10 @@ class ScrapingStockRepository:
         after=after_log(logger, logging.INFO),
     )
     def _get_stock_page_html(self, stock_symbol: str) -> BeautifulSoup:
-        driver = webdriver.Chrome(self._chrome_options)
+        driver = webdriver.Remote(
+            command_executor=self.settings.remote_chrome_webdriver_address,
+            options=self._chrome_options,
+        )
         try:
             # Navigate to the URL
             uri: str = f"{self.settings.marketwatch_base_url}{STOCK_DETAILS_ENDPOINT.format(stock_symbol=stock_symbol)}"
