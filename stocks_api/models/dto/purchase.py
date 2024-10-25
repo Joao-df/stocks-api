@@ -1,9 +1,13 @@
 from pydantic import BaseModel
 
 
-class PurchaseAmount(BaseModel):
+class PurchaseRequestBody(BaseModel):
     amount: float
 
 
-class PurchaseStockAmount(PurchaseAmount):
+class PurchaseStockAmount(PurchaseRequestBody):
     company_code: str
+
+
+class PurchaseResponse(BaseModel):
+    message: str
