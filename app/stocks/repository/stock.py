@@ -32,7 +32,7 @@ from app.models.dto.stock_response import (
     StockData,
     StockValuesData,
 )
-from app.models.tables.purchases import Purchases
+from app.stocks.repository.purchases_repository import PurchasesRepository
 
 logger: logging.Logger = logging.getLogger()
 OPEN_CLOSE_ENDPOINT = (
@@ -190,20 +190,6 @@ class ApiStockRepository:
                 )
 
 
-class PurchasesRepository:
-    def __init__(self, settings: Settings, session: Session) -> None:
-        self.settings: Settings = settings
-        self.session: Session = session
-
-    async def purchase_stock(self, purchase_amount: PurchaseStockAmount) -> None:
-        purchases = Purchases(**purchase_amount.model_dump())
-        self.session.add(purchases)
-        self.session.commit()
-
-    async def get_stock_by_symbol(self, stock_symbol: str, date: date) -> None:
-        return
-
-
 class CompositeStockRepository:
     def __init__(self, settings: Settings, session: Session) -> None:
         self.api_stock_repository: ApiStockRepository = ApiStockRepository(
@@ -241,8 +227,16 @@ class CompositeStockRepository:
             stock_symbol=stock_symbol
         )
 
+        purchased_amount = (
+            await self.purchases_repository.get_purchases_total_amount_by_symbol(
+                stock_symbol
+            )
+        )
+
         return_data = {
             "status": daily_open_close_data.get("status"),
+            "purchased_amount": purchased_amount,
+            "purchased_status": "Ok" if purchased_amount > 0 else None,
             "request_data": daily_open_close_data.get("from"),
             "company_code": daily_open_close_data.get("symbol"),
             "company_name": company_name,

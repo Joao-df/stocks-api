@@ -23,5 +23,4 @@ class StockService:
         purchase_stock_amount: PurchaseStockAmount = PurchaseStockAmount.model_validate(
             purchase_amount.model_dump() | {"company_code": stock_symbol}
         )
-        print(purchase_stock_amount)
         await self.stock_repository.purchase_stock(purchase_stock_amount)
