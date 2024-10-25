@@ -9,9 +9,7 @@ from app.app_config import Settings
 from app.models.dto.daily_open_close_stock import DailyOpenCloseStock
 
 logger: logging.Logger = logging.getLogger()
-OPEN_CLOSE_ENDPOINT = (
-    "/v1/open-close/{stock_symbol}/{date}?adjusted=true&apiKey={api_key}"
-)
+OPEN_CLOSE_ENDPOINT = "/v1/open-close/{stock_symbol}/{date}?adjusted=true&apiKey={api_key}"
 STOCK_DETAILS_ENDPOINT = "/investing/stock/{stock_symbol}"
 executor = ThreadPoolExecutor(max_workers=5)
 
@@ -20,9 +18,7 @@ class OpenCloseStockRepository:
     def __init__(self, settings: Settings) -> None:
         self.settings: Settings = settings
 
-    async def get_daily_open_close_sotck(
-        self, stock_symbol: str, date: date
-    ) -> DailyOpenCloseStock:
+    async def get_daily_open_close_sotck(self, stock_symbol: str, date: date) -> DailyOpenCloseStock:
         uri: str = f"{self.settings.polygon_base_url}{OPEN_CLOSE_ENDPOINT.format(stock_symbol=stock_symbol, date=date, api_key=self.settings.polygon_api_key)}"
         async with httpx.AsyncClient() as client:
             response_data: httpx.Response = await client.get(uri)
@@ -40,6 +36,4 @@ class OpenCloseStockRepository:
                     stock_symbol,
                     response_data.json(),
                 )
-                raise HTTPException(
-                    status_code=500, detail="Internal error. Please contact support."
-                )
+                raise HTTPException(status_code=500, detail="Internal error. Please contact support.")

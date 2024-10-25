@@ -27,9 +27,7 @@ from app.models.dto.stock_response import (
 )
 
 logger: logging.Logger = logging.getLogger()
-OPEN_CLOSE_ENDPOINT = (
-    "/v1/open-close/{stock_symbol}/{date}?adjusted=true&apiKey={api_key}"
-)
+OPEN_CLOSE_ENDPOINT = "/v1/open-close/{stock_symbol}/{date}?adjusted=true&apiKey={api_key}"
 STOCK_DETAILS_ENDPOINT = "/investing/stock/{stock_symbol}"
 executor = ThreadPoolExecutor(max_workers=5)
 
@@ -70,9 +68,7 @@ class MarketWatchRepository:
     def _close_subscriber_banner(self, driver: webdriver.Chrome) -> None:
         banner: WebElement = driver.find_element(By.ID, "cx-scrim-wrapper")
         if banner.is_displayed():
-            close_banner_btn: WebElement = banner.find_element(
-                By.CLASS_NAME, "close-btn"
-            )
+            close_banner_btn: WebElement = banner.find_element(By.CLASS_NAME, "close-btn")
             if close_banner_btn.is_displayed():
                 close_banner_btn.click()
 
@@ -112,27 +108,20 @@ class MarketWatchRepository:
 
     async def _async_get_stock_page_html(self, stock_symbol: str) -> BeautifulSoup:
         loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
-        return await loop.run_in_executor(
-            executor, self._get_stock_page_html, stock_symbol
-        )
+        return await loop.run_in_executor(executor, self._get_stock_page_html, stock_symbol)
 
-    async def get_stock_performance_by_symbol(
-        self, stock_symbol: str
-    ) -> PerformanceData:
+    async def get_stock_performance_by_symbol(self, stock_symbol: str) -> PerformanceData:
         stock_page: BeautifulSoup = await self._async_get_stock_page_html(stock_symbol)
         performance_div = stock_page.find("div", class_="performance")
         table_rows = performance_div.find_all("tr", class_="table__row")
 
         performance_data = {
-            table_row.find("td").text: table_row.find("li").text.replace("%", "")
-            for table_row in table_rows
+            table_row.find("td").text: table_row.find("li").text.replace("%", "") for table_row in table_rows
         }
 
         return PerformanceData.model_validate(performance_data)
 
-    async def get_stock_competitors_by_symbol(
-        self, stock_symbol: str
-    ) -> list[CompetitorData]:
+    async def get_stock_competitors_by_symbol(self, stock_symbol: str) -> list[CompetitorData]:
         stock_page: BeautifulSoup = await self._async_get_stock_page_html(stock_symbol)
         competitors_div = stock_page.find("div", class_="Competitors")
         table_rows = competitors_div.find("tbody").find_all("tr")
@@ -140,9 +129,7 @@ class MarketWatchRepository:
             CompetitorData.model_validate(
                 {
                     "name": table_row.find("a", class_="link").text,
-                    "market_cap": convert_currency_string(
-                        table_row.find_all("td")[2].text
-                    ),
+                    "market_cap": convert_currency_string(table_row.find_all("td")[2].text),
                 }
             )
             for table_row in table_rows

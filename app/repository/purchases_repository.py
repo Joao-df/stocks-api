@@ -18,8 +18,6 @@ class PurchasesRepository:
 
     async def get_purchases_total_amount_by_symbol(self, stock_symbol: str) -> float:
         total_amount: float | None = (
-            self.session.query(func.sum(Purchases.amount))
-            .filter(Purchases.company_code == stock_symbol)
-            .scalar()
+            self.session.query(func.sum(Purchases.amount)).filter(Purchases.company_code == stock_symbol).scalar()
         )
         return total_amount if total_amount is not None else 0.0

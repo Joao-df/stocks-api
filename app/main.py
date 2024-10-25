@@ -25,9 +25,7 @@ app = FastAPI(title="stocks", lifespan=lifespan)
 
 
 @app.middleware("http")
-async def log_endpoint_start_and_end(
-    request: Request, call_next: Callable[[Request], Any]
-) -> Any:
+async def log_endpoint_start_and_end(request: Request, call_next: Callable[[Request], Any]) -> Any:
     method: str = request.method
     endpoint: str = request.url.path
     logger.info("[START] %s: %s", method, endpoint)

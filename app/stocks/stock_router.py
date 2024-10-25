@@ -37,9 +37,7 @@ async def purchase_stock(
     session: SessionDep,
     settings: SettingsDep,
 ) -> PurchaseResponse:
-    await StockService(settings, session).purchase_stock(
-        stock_symbol=stock_symbol, purchase_amount=purchase_amount
-    )
+    await StockService(settings, session).purchase_stock(stock_symbol=stock_symbol, purchase_amount=purchase_amount)
 
     return PurchaseResponse(
         message=f"{purchase_amount.amount} units of stock {stock_symbol} were added to your stock record."

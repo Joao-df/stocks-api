@@ -25,9 +25,7 @@ def upgrade() -> None:
         "purchases",
         sa.Column("company_code", sa.String(), nullable=False),
         sa.Column("amount", sa.Float(), nullable=False),
-        sa.Column(
-            "id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False
-        ),
+        sa.Column("id", sa.Uuid(), server_default=sa.text("gen_random_uuid()"), nullable=False),
         sa.Column("created_at", sa.DateTime(), nullable=False),
         sa.Column("updated_at", sa.DateTime(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
