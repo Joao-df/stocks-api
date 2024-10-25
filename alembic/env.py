@@ -6,6 +6,7 @@ from sqlalchemy import pool
 from sqlalchemy.ext.asyncio import async_engine_from_config
 
 from alembic import context
+from app.database import postgres_url
 from app.models.tables.base import Base
 
 # this is the Alembic Config object, which provides
@@ -16,6 +17,10 @@ config = context.config
 # This line sets up loggers basically.
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
+
+# Set the db url
+config.set_main_option("sqlalchemy.url", postgres_url.render_as_string(hide_password=False))
+
 
 # add your model's MetaData object here
 # for 'autogenerate' support
