@@ -23,16 +23,16 @@ from tenacity import (
     wait_random,
 )
 
-from stocks_api.app_config import Settings
-from stocks_api.common.currency_utils import convert_currency_string
-from stocks_api.models.dto.purchase import PurchaseStockAmount
-from stocks_api.models.dto.stock_response import (
+from app.app_config import Settings
+from app.common.currency_utils import convert_currency_string
+from app.models.dto.purchase import PurchaseStockAmount
+from app.models.dto.stock_response import (
     CompetitorData,
     PerformanceData,
     StockData,
     StockValuesData,
 )
-from stocks_api.models.tables.purchases import Purchases
+from app.models.tables.purchases import Purchases
 
 logger: logging.Logger = logging.getLogger()
 OPEN_CLOSE_ENDPOINT = (

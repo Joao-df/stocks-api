@@ -2,12 +2,12 @@ from datetime import date, datetime, timedelta
 
 from fastapi import APIRouter
 
-from stocks_api.app_config import SettingsDep
-from stocks_api.cache import default_cache
-from stocks_api.database import SessionDep
-from stocks_api.models.dto.purchase import PurchaseRequestBody, PurchaseResponse
-from stocks_api.models.dto.stock_response import StockData
-from stocks_api.service.stock import StockService
+from app.app_config import SettingsDep
+from app.cache import default_cache
+from app.database import SessionDep
+from app.models.dto.purchase import PurchaseRequestBody, PurchaseResponse
+from app.models.dto.stock_response import StockData
+from app.stocks.stock_service import StockService
 
 router = APIRouter(prefix="/stock", tags=["stock"])
 

@@ -2,10 +2,10 @@ from datetime import date
 
 from sqlalchemy.orm import Session
 
-from stocks_api.app_config import Settings
-from stocks_api.models.dto.purchase import PurchaseRequestBody, PurchaseStockAmount
-from stocks_api.models.dto.stock_response import StockData
-from stocks_api.repository.stock import CompositeStockRepository
+from app.app_config import Settings
+from app.models.dto.purchase import PurchaseRequestBody, PurchaseStockAmount
+from app.models.dto.stock_response import StockData
+from app.stocks.repository.stock import CompositeStockRepository
 
 
 class StockService:

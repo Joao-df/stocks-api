@@ -6,7 +6,7 @@ from fastapi_cache.backends.redis import RedisBackend
 from fastapi_cache.decorator import cache
 from redis import asyncio as aioredis
 
-from stocks_api.app_config import Settings, get_settings
+from app.app_config import Settings, get_settings
 
 settings: Settings = get_settings()
 

@@ -1,6 +1,6 @@
 from sqlalchemy.orm import Mapped, mapped_column
 
-from stocks_api.models.tables.base import Base
+from app.models.tables.base import Base
 
 
 class Purchases(Base):

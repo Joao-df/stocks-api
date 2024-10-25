@@ -5,7 +5,7 @@ from fastapi import Depends
 from sqlalchemy import URL, Engine, create_engine
 from sqlalchemy.orm import Session, sessionmaker
 
-from stocks_api.app_config import Settings, get_settings
+from app.app_config import Settings, get_settings
 
 settings: Settings = get_settings()
 

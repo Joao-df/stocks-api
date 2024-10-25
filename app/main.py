@@ -7,9 +7,9 @@ from typing import Any, AsyncGenerator
 from fastapi import FastAPI, Request
 from fastapi.concurrency import asynccontextmanager
 
-from stocks_api.cache import init_cache
-from stocks_api.log_config import LogConfig
-from stocks_api.router.stock import router as stock_router
+from app.cache import init_cache
+from app.log_config import LogConfig
+from app.stocks.stock_router import router as stock_router
 
 dictConfig(LogConfig().model_dump())
 logger: logging.Logger = logging.getLogger()

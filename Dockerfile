@@ -8,4 +8,4 @@ COPY . /app
 
 RUN poetry install --only main
 
-ENTRYPOINT poetry run fastapi run stocks_api/main.py
+ENTRYPOINT poetry run fastapi run app/main.py
