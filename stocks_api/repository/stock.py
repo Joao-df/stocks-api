@@ -8,11 +8,12 @@ from typing import Any, List
 import httpx
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
-from fastapi import Depends, HTTPException
+from fastapi import HTTPException
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
+from sqlalchemy.orm import Session
 from tenacity import (
     after_log,
     before_log,
@@ -22,12 +23,16 @@ from tenacity import (
     wait_random,
 )
 
-from stocks_api.app_config import Settings, get_settings
+from stocks_api.app_config import Settings
 from stocks_api.common.currency_utils import convert_currency_string
-from stocks_api.models.stock.competitor import Competitor
-from stocks_api.models.stock.performance_data import PerformanceData
-from stocks_api.models.stock.stock import Stock
-from stocks_api.models.stock.stock_values import StockValues
+from stocks_api.models.dto.purchase import PurchaseStockAmount
+from stocks_api.models.dto.stock_response import (
+    CompetitorData,
+    PerformanceData,
+    StockData,
+    StockValuesData,
+)
+from stocks_api.models.tables.purchases import Purchases
 
 logger: logging.Logger = logging.getLogger()
 OPEN_CLOSE_ENDPOINT = (
@@ -135,12 +140,12 @@ class ScrapingStockRepository:
 
     async def get_stock_competitors_by_symbol(
         self, stock_symbol: str
-    ) -> list[Competitor]:
+    ) -> list[CompetitorData]:
         stock_page: BeautifulSoup = await self._async_get_stock_page_html(stock_symbol)
         competitors_div = stock_page.find("div", class_="Competitors")
         table_rows = competitors_div.find("tbody").find_all("tr")
         return [
-            Competitor.model_validate(
+            CompetitorData.model_validate(
                 {
                     "name": table_row.find("a", class_="link").text,
                     "market_cap": convert_currency_string(
@@ -185,36 +190,49 @@ class ApiStockRepository:
                 )
 
 
+class PurchasesRepository:
+    def __init__(self, settings: Settings, session: Session) -> None:
+        self.settings: Settings = settings
+        self.session: Session = session
+
+    async def purchase_stock(self, purchase_amount: PurchaseStockAmount) -> None:
+        purchases = Purchases(**purchase_amount.model_dump())
+        self.session.add(purchases)
+        self.session.commit()
+
+    async def get_stock_by_symbol(self, stock_symbol: str, date: date) -> None:
+        return
+
+
 class CompositeStockRepository:
-    def __init__(
-        self,
-        api_stock_repository: ApiStockRepository = Depends(
-            lambda: ApiStockRepository(get_settings())
-        ),
-        scraping_stock_repository: ScrapingStockRepository = Depends(
-            lambda: ScrapingStockRepository(get_settings())
-        ),
-    ) -> None:
-        self.api_stock_repository: ApiStockRepository = api_stock_repository
+    def __init__(self, settings: Settings, session: Session) -> None:
+        self.api_stock_repository: ApiStockRepository = ApiStockRepository(
+            settings=settings
+        )
         self.scraping_stock_repository: ScrapingStockRepository = (
-            scraping_stock_repository
+            ScrapingStockRepository(settings=settings)
+        )
+        self.purchases_repository: PurchasesRepository = PurchasesRepository(
+            settings=settings, session=session
         )
 
-    async def get_stock_by_symbol(self, stock_symbol: str, date: date) -> Stock:
+    async def get_stock_by_symbol(self, stock_symbol: str, date: date) -> StockData:
         daily_open_close_data = (
             await self.api_stock_repository.get_daily_open_close_sotck(
                 stock_symbol, date
             )
         )
 
-        stock_values: StockValues = StockValues.model_validate(daily_open_close_data)
+        stock_values: StockValuesData = StockValuesData.model_validate(
+            daily_open_close_data
+        )
         performance_data: PerformanceData = (
             await self.scraping_stock_repository.get_stock_performance_by_symbol(
                 stock_symbol
             )
         )
         competitors: List[
-            Competitor
+            CompetitorData
         ] = await self.scraping_stock_repository.get_stock_competitors_by_symbol(
             stock_symbol=stock_symbol
         )
@@ -233,4 +251,7 @@ class CompositeStockRepository:
             "competitors": competitors,
         }
 
-        return return_data
+        return StockData.model_validate(return_data)
+
+    async def purchase_stock(self, purchase_amount: PurchaseStockAmount) -> None:
+        await self.purchases_repository.purchase_stock(purchase_amount)

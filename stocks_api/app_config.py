@@ -1,5 +1,7 @@
 from functools import lru_cache
+from typing import Annotated
 
+from fastapi import Depends
 from pydantic_settings import BaseSettings, SettingsConfigDict
 
 
@@ -11,6 +13,12 @@ class Settings(BaseSettings):
     selenium_headless_mode: bool = True
     redis_url: str = "redis://cache"
     default_caching_time: int = 60
+    postgres_drivername: str = "postgresql+psycopg2"
+    postgres_username: str = "postgres"
+    postgres_password: str = "password"
+    postgres_host: str = "postgres"
+    postgres_port: str | None = None
+    postgres_db: str = "postgres"
 
     model_config = SettingsConfigDict(env_file=".env")
 
@@ -18,3 +26,6 @@ class Settings(BaseSettings):
 @lru_cache
 def get_settings() -> Settings:
     return Settings()
+
+
+SettingsDep = Annotated[Settings, Depends(get_settings)]

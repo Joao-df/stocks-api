@@ -1,10 +1,12 @@
 from datetime import date, datetime, timedelta
 
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter
 
+from stocks_api.app_config import SettingsDep
 from stocks_api.cache import default_cache
-from stocks_api.models.stock.stock import Stock
-from stocks_api.repository.stock import CompositeStockRepository
+from stocks_api.database import SessionDep
+from stocks_api.models.dto.purchase import PurchaseAmount
+from stocks_api.models.dto.stock_response import StockData
 from stocks_api.service.stock import StockService
 
 router = APIRouter(prefix="/stock", tags=["stock"])
@@ -18,9 +20,24 @@ def get_yesterday() -> date:
 @default_cache()
 async def get_stock(
     stock_symbol: str,
+    session: SessionDep,
+    settings: SettingsDep,
     date: date = get_yesterday(),
-    stock_repository: CompositeStockRepository = Depends(),
-) -> Stock:
+) -> StockData:
     return await StockService(
-        stock_repository=stock_repository,
+        settings,
+        session,
     ).get_stock_by_symbol(stock_symbol=stock_symbol, date=date)
+
+
+@router.post("/{stock_symbol}", status_code=201)
+async def purchase_stock(
+    purchase_amount: PurchaseAmount,
+    stock_symbol: str,
+    session: SessionDep,
+    settings: SettingsDep,
+) -> None:
+    print(session)
+    await StockService(settings, session).purchase_stock(
+        stock_symbol=stock_symbol, purchase_amount=purchase_amount
+    )

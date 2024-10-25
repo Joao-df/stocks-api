@@ -35,6 +35,19 @@ services:
     networks:
       - default
 
+  postgres:
+    image: postgres:15.3-alpine
+    container_name: postgres
+    restart: always
+    hostname: postgres
+    environment:
+      POSTGRES_PASSWORD: password
+      POSTGRES_USER: postgres
+    ports:
+      - 5432:5432
+    # volumes:
+    #   - ./data/postgres:/var/lib/postgresql/data
+
 networks:
   default:
     name: local-network
