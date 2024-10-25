@@ -1,19 +1,15 @@
 import asyncio
 import logging
 from concurrent.futures import ThreadPoolExecutor
-from datetime import date
 from functools import lru_cache
-from typing import Any, List
+from typing import List
 
-import httpx
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
-from fastapi import HTTPException
 from selenium import webdriver
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
-from sqlalchemy.orm import Session
 from tenacity import (
     after_log,
     before_log,
@@ -25,14 +21,10 @@ from tenacity import (
 
 from app.app_config import Settings
 from app.common.currency_utils import convert_currency_string
-from app.models.dto.purchase import PurchaseStockAmount
 from app.models.dto.stock_response import (
     CompetitorData,
     PerformanceData,
-    StockData,
-    StockValuesData,
 )
-from app.stocks.repository.purchases_repository import PurchasesRepository
 
 logger: logging.Logger = logging.getLogger()
 OPEN_CLOSE_ENDPOINT = (
@@ -45,7 +37,7 @@ executor = ThreadPoolExecutor(max_workers=5)
 class CatchByBotDetectionError(Exception): ...
 
 
-class ScrapingStockRepository:
+class MarketWatchRepository:
     def __init__(self, settings: Settings) -> None:
         self.settings: Settings = settings
 
@@ -159,93 +151,3 @@ class ScrapingStockRepository:
     async def get_company_name_by_symbol(self, stock_symbol: str) -> str:
         stock_page: BeautifulSoup = await self._async_get_stock_page_html(stock_symbol)
         return stock_page.find("h1", class_="company__name").text
-
-
-class ApiStockRepository:
-    def __init__(self, settings: Settings) -> None:
-        self.settings: Settings = settings
-
-    async def get_daily_open_close_sotck(
-        self, stock_symbol: str, date: date
-    ) -> dict[str, Any]:
-        uri: str = f"{self.settings.polygon_base_url}{OPEN_CLOSE_ENDPOINT.format(stock_symbol=stock_symbol, date=date, api_key=self.settings.polygon_api_key)}"
-        async with httpx.AsyncClient() as client:
-            response_data: httpx.Response = await client.get(uri)
-
-        match response_data.status_code:
-            case 200:
-                return response_data.json()
-            case 404:
-                detail = f"Stock {stock_symbol} not found"
-                logger.warning(detail)
-                raise HTTPException(status_code=404, detail=detail)
-            case _:
-                logger.error(
-                    "Request failed for %s. Returned data: %s",
-                    stock_symbol,
-                    response_data.json(),
-                )
-                raise HTTPException(
-                    status_code=500, detail="Internal error. Please contact support."
-                )
-
-
-class CompositeStockRepository:
-    def __init__(self, settings: Settings, session: Session) -> None:
-        self.api_stock_repository: ApiStockRepository = ApiStockRepository(
-            settings=settings
-        )
-        self.scraping_stock_repository: ScrapingStockRepository = (
-            ScrapingStockRepository(settings=settings)
-        )
-        self.purchases_repository: PurchasesRepository = PurchasesRepository(
-            settings=settings, session=session
-        )
-
-    async def get_stock_by_symbol(self, stock_symbol: str, date: date) -> StockData:
-        daily_open_close_data = (
-            await self.api_stock_repository.get_daily_open_close_sotck(
-                stock_symbol, date
-            )
-        )
-
-        stock_values: StockValuesData = StockValuesData.model_validate(
-            daily_open_close_data
-        )
-        performance_data: PerformanceData = (
-            await self.scraping_stock_repository.get_stock_performance_by_symbol(
-                stock_symbol
-            )
-        )
-        competitors: List[
-            CompetitorData
-        ] = await self.scraping_stock_repository.get_stock_competitors_by_symbol(
-            stock_symbol=stock_symbol
-        )
-
-        company_name = await self.scraping_stock_repository.get_company_name_by_symbol(
-            stock_symbol=stock_symbol
-        )
-
-        purchased_amount = (
-            await self.purchases_repository.get_purchases_total_amount_by_symbol(
-                stock_symbol
-            )
-        )
-
-        return_data = {
-            "status": daily_open_close_data.get("status"),
-            "purchased_amount": purchased_amount,
-            "purchased_status": "Ok" if purchased_amount > 0 else None,
-            "request_data": daily_open_close_data.get("from"),
-            "company_code": daily_open_close_data.get("symbol"),
-            "company_name": company_name,
-            "stock_values": stock_values,
-            "performance_data": performance_data,
-            "competitors": competitors,
-        }
-
-        return StockData.model_validate(return_data)
-
-    async def purchase_stock(self, purchase_amount: PurchaseStockAmount) -> None:
-        await self.purchases_repository.purchase_stock(purchase_amount)
