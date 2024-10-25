@@ -8,6 +8,7 @@ from fastapi import FastAPI, Request
 from fastapi.concurrency import asynccontextmanager
 
 from app.cache import init_cache
+from app.database import sessionmanager
 from app.log_config import LogConfig
 from app.stocks.stock_router import router as stock_router
 
@@ -19,6 +20,8 @@ logger: logging.Logger = logging.getLogger()
 async def lifespan(_: FastAPI) -> AsyncGenerator[None, None]:
     await init_cache()
     yield
+    if sessionmanager._engine is not None:
+        await sessionmanager.close()
 
 
 app = FastAPI(title="stocks", lifespan=lifespan)

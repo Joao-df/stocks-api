@@ -1,7 +1,7 @@
 from datetime import date
 from typing import Any
 
-from sqlalchemy.orm import Session
+from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.app_config import Settings
 from app.models.dto.daily_open_close_stock import DailyOpenCloseStock
@@ -18,7 +18,7 @@ from app.repository.purchases_repository import PurchasesRepository
 
 
 class StockService:
-    def __init__(self, settings: Settings, session: Session) -> None:
+    def __init__(self, settings: Settings, session: AsyncSession) -> None:
         self.open_close_stock_repository: OpenCloseStockRepository = OpenCloseStockRepository(settings=settings)
         self.marketwatch_repository: MarketWatchRepository = MarketWatchRepository(settings=settings)
         self.purchases_repository: PurchasesRepository = PurchasesRepository(settings=settings, session=session)

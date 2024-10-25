@@ -13,7 +13,7 @@ class Settings(BaseSettings):
     selenium_headless_mode: bool = True
     redis_url: str = "redis://cache"
     default_caching_time: int = 60
-    postgres_drivername: str = "postgresql+psycopg2"
+    postgres_drivername: str = "postgresql+asyncpg"
     postgres_username: str = "postgres"
     postgres_password: str = "password"
     postgres_host: str = "postgres"
