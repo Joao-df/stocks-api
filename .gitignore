@@ -162,6 +162,9 @@ cython_debug/
 #  option (not recommended) you can uncomment the following to ignore the entire idea folder.
 #.idea/
 
+# VSCode
+.vscode
+
 # DB
 
 data/
@@ -169,3 +172,5 @@ data/
 # Secrets
 
 *.secret
+
+.ruff_cache
