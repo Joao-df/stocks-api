@@ -1,6 +1,6 @@
 from datetime import date
 
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field
 
 
 class MarketCapData(BaseModel):
@@ -14,11 +14,11 @@ class CompetitorData(BaseModel):
 
 
 class PerformanceData(BaseModel):
-    five_days: float = Field(validation_alias="5 Day")
-    one_month: float = Field(validation_alias="1 Month")
-    three_months: float = Field(validation_alias="3 Month")
-    year_to_date: float = Field(validation_alias="YTD")
-    one_year: float = Field(validation_alias="1 Year")
+    five_days: float = Field(validation_alias=AliasChoices("5 Day", "five_days"))
+    one_month: float = Field(validation_alias=AliasChoices("1 Month", "one_month"))
+    three_months: float = Field(validation_alias=AliasChoices("3 Month", "three_months"))
+    year_to_date: float = Field(validation_alias=AliasChoices("YTD", "year_to_date"))
+    one_year: float = Field(validation_alias=AliasChoices("1 Year", "one_year"))
 
 
 class StockValuesData(BaseModel):

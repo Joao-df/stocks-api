@@ -1,9 +1,9 @@
-from pydantic import BaseModel, Field
+from pydantic import AliasChoices, BaseModel, Field
 
 
 class DailyOpenCloseStock(BaseModel):
     status: str
-    date: str = Field(validation_alias="from")
+    date: str = Field(validation_alias=AliasChoices("from", "date"))
     symbol: str
     open: float
     high: float

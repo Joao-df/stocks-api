@@ -52,7 +52,7 @@ class StockService:
         return_data: dict[str, Any] = {
             "status": daily_open_close_data.status,
             "purchased_amount": purchased_amount,
-            "purchased_status": "Ok" if purchased_amount > 0 else None,
+            "purchased_status": daily_open_close_data.status,
             "request_data": daily_open_close_data.date,
             "company_code": daily_open_close_data.symbol,
             "company_name": company_name,
