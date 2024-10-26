@@ -1,28 +1,24 @@
-from datetime import date, datetime, timedelta
+from typing import Annotated
 
-from fastapi import APIRouter
+from fastapi import APIRouter, Body, Query
 
 from app.app_config import SettingsDep
 from app.cache import default_cache
 from app.database import SessionDep
-from app.models.dto.purchase import PurchaseRequestBody, PurchaseResponse
+from app.models.dto.stock_endpoint_models import GetStockQueryParams, PurchaseRequestBody, PurchaseResponse
 from app.models.dto.stock_response import StockData
 from app.stocks.stock_service import StockService
 
 router = APIRouter(prefix="/stock", tags=["stock"])
 
 
-def get_yesterday() -> date:
-    return (datetime.now() - timedelta(1)).date()
-
-
 @router.get("/{stock_symbol}")
 @default_cache()
 async def get_stock(
     stock_symbol: str,
+    query_params: Annotated[GetStockQueryParams, Query()],
     session: SessionDep,
     settings: SettingsDep,
-    date: date = get_yesterday(),
 ) -> StockData:
     """Get stock data for a specific stock symbol.
 
@@ -38,12 +34,12 @@ async def get_stock(
     return await StockService(
         settings,
         session,
-    ).get_stock_by_symbol(stock_symbol=stock_symbol, date=date)
+    ).get_stock_by_symbol(stock_symbol=stock_symbol, date=query_params.request_date)
 
 
 @router.post("/{stock_symbol}", status_code=201)
 async def purchase_stock(
-    purchase_amount: PurchaseRequestBody,
+    request_body: Annotated[PurchaseRequestBody, Body()],
     stock_symbol: str,
     session: SessionDep,
     settings: SettingsDep,
@@ -59,8 +55,8 @@ async def purchase_stock(
     Returns:
     - PurchaseResponse: A message confirming the purchase of the stock.
     """
-    await StockService(settings, session).purchase_stock(stock_symbol=stock_symbol, purchase_amount=purchase_amount)
+    await StockService(settings, session).purchase_stock(stock_symbol=stock_symbol, amount=request_body.amount)
 
     return PurchaseResponse(
-        message=f"{purchase_amount.amount} units of stock {stock_symbol} were added to your stock record."
+        message=f"{request_body.amount} units of stock {stock_symbol} were added to your stock record."
     )

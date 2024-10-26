@@ -5,7 +5,7 @@ from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.app_config import Settings
 from app.models.dto.daily_open_close_stock import DailyOpenCloseStock
-from app.models.dto.purchase import PurchaseRequestBody, PurchaseStockAmount
+from app.models.dto.stock_endpoint_models import PurchaseStockAmount
 from app.models.dto.stock_response import (
     CompetitorData,
     PerformanceData,
@@ -63,17 +63,15 @@ class StockService:
 
         return StockData.model_validate(return_data)
 
-    async def purchase_stock(self, stock_symbol: str, purchase_amount: PurchaseRequestBody) -> None:
+    async def purchase_stock(self, stock_symbol: str, amount: float) -> None:
         """Purchase a specific amount of stock for a given stock symbol.
 
         Args:
             stock_symbol (str): The symbol of the stock to purchase.
-            purchase_amount (PurchaseRequestBody): The amount to purchase along with the company code.
+            amount (float): The amount of stock to purchase.
 
         Returns:
             None
         """
-        purchase_stock_amount: PurchaseStockAmount = PurchaseStockAmount.model_validate(
-            purchase_amount.model_dump() | {"company_code": stock_symbol}
-        )
+        purchase_stock_amount: PurchaseStockAmount = PurchaseStockAmount(amount=amount, company_code=stock_symbol)
         await self.purchases_repository.purchase_stock(purchase_stock_amount)

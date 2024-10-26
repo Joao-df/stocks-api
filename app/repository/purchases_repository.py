@@ -4,7 +4,7 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.app_config import Settings
-from app.models.dto.purchase import PurchaseStockAmount
+from app.models.dto.stock_endpoint_models import PurchaseStockAmount
 from app.models.tables.purchases import Purchases
 
 
