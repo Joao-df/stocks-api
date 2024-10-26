@@ -1,11 +1,13 @@
+import datetime
 from typing import Annotated
 
 from fastapi import APIRouter, Body, Query
 
 from app.app_config import SettingsDep
 from app.cache import default_cache
+from app.common.datetime_utils import get_yesterday
 from app.database import SessionDep
-from app.models.dto.stock_endpoint_models import GetStockQueryParams, PurchaseRequestBody, PurchaseResponse
+from app.models.dto.stock_endpoint_models import PurchaseRequestBody, PurchaseResponse
 from app.models.dto.stock_response import StockData
 from app.stocks.stock_service import StockService
 
@@ -16,9 +18,9 @@ router = APIRouter(prefix="/stock", tags=["stock"])
 @default_cache()
 async def get_stock(
     stock_symbol: str,
-    query_params: Annotated[GetStockQueryParams, Query()],
     session: SessionDep,
     settings: SettingsDep,
+    date: datetime.date = Query(default_factory=get_yesterday),
 ) -> StockData:
     """Get stock data for a specific stock symbol.
 
@@ -34,7 +36,7 @@ async def get_stock(
     return await StockService(
         settings,
         session,
-    ).get_stock_by_symbol(stock_symbol=stock_symbol, date=query_params.request_date)
+    ).get_stock_by_symbol(stock_symbol=stock_symbol, date=date)
 
 
 @router.post("/{stock_symbol}", status_code=201)
