@@ -2,13 +2,21 @@
 
 **Description**: This project is an API for querying and managing stock data, developed as a technical assignment for the company CIAL.
 
+
 ## Table of Contents
 
-1. Overview
-2. Installation and Setup
-3. Usage
-4. Main Endpoints
-5. License
+- [Stocks API](#stocks-api)
+  - [Table of Contents](#table-of-contents)
+  - [Overview](#overview)
+    - [Key Technologies](#key-technologies)
+  - [Installation and Setup](#installation-and-setup)
+    - [Prerequisites](#prerequisites)
+    - [Installation](#installation)
+    - [Unit Tests](#unit-tests)
+  - [Usage](#usage)
+  - [Main Endpoints](#main-endpoints)
+  - [Notes](#notes)
+  - [License](#license)
 
 ## Overview
 
@@ -57,6 +65,14 @@ This API is built using **FastAPI** and Docker, with support for Redis caching, 
    ```
    poetry run fastapi dev .\app\main.py
    ```
+
+### Unit Tests
+
+To run unit tests, use the following command:
+
+```
+poetry run pytest --cov=.
+```
 
 ## Usage
 
