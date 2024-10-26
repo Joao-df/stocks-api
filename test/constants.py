@@ -3,6 +3,19 @@ from datetime import date
 from app.models.dto.daily_open_close_stock import DailyOpenCloseStock
 from app.models.dto.stock_response import CompetitorData, MarketCapData, PerformanceData, StockData
 
+AAPL_DAILY_OPEN_CLOSE_STOCK_DATA = {
+    "status": "OK",
+    "date": "2023-10-01",
+    "symbol": "AAPL",
+    "open": 150.0,
+    "high": 155.0,
+    "low": 149.0,
+    "close": 154.0,
+    "volume": 1000000,
+    "after_hours": 157.0,
+    "pre_market": 156.0,
+}
+
 AAPL_DAILY_OPEN_CLOSE_STOCK = DailyOpenCloseStock(
     status="OK",
     date="2023-10-01",
@@ -15,6 +28,7 @@ AAPL_DAILY_OPEN_CLOSE_STOCK = DailyOpenCloseStock(
     preMarket=156.0,
     afterHours=157.0,
 )
+
 AAPL_PERFORMANCE_DATA = PerformanceData(
     five_days=1.5, one_month=3.0, three_months=5.0, year_to_date=10.0, one_year=15.0
 )
@@ -43,7 +57,18 @@ AAPL_EXPECTED_STOCK: StockData = StockData.model_validate(
     }
 )
 
-
+GE_DAILY_OPEN_CLOSE_STOCK_DATA = {
+    "status": "OK",
+    "date": "2023-10-02",
+    "symbol": "GE",
+    "open": 151.0,
+    "high": 156.0,
+    "low": 150.0,
+    "close": 155.0,
+    "volume": 2000000,
+    "after_hours": 158.0,
+    "pre_market": 157.0,
+}
 GE_DAILY_OPEN_CLOSE_STOCK = DailyOpenCloseStock(
     status="OK",
     date="2023-10-02",

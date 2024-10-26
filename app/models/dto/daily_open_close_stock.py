@@ -10,5 +10,5 @@ class DailyOpenCloseStock(BaseModel):
     low: float
     close: float
     volume: float
-    after_hours: float = Field(validation_alias="afterHours")
-    pre_market: float = Field(validation_alias="preMarket")
+    after_hours: float = Field(validation_alias=AliasChoices("afterHours", "after_hours"))
+    pre_market: float = Field(validation_alias=AliasChoices("preMarket", "pre_market"))

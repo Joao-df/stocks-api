@@ -27,8 +27,11 @@ class OpenCloseStockRepository(OpenCloseStockRepositoryInterface):
     async def get_daily_open_close_sotck(self, stock_symbol: str, date: date) -> DailyOpenCloseStock:
         uri: str = f"{self.settings.polygon_base_url}{OPEN_CLOSE_ENDPOINT.format(stock_symbol=stock_symbol, date=date, api_key=self.settings.polygon_api_key)}"
         async with httpx.AsyncClient() as client:
-            response_data: httpx.Response = await client.get(uri)
-
+            try:
+                response_data: httpx.Response = await client.get(uri)
+            except httpx.RequestError as exp:
+                logger.error("Failed to request data: %s", exp)
+                raise HTTPException(status_code=500, detail="Internal error. Please contact support.")
         match response_data.status_code:
             case 200:
                 return DailyOpenCloseStock.model_validate(response_data.json())
