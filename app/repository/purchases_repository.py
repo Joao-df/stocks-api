@@ -1,3 +1,5 @@
+from abc import ABC, abstractmethod
+
 from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -6,7 +8,14 @@ from app.models.dto.purchase import PurchaseStockAmount
 from app.models.tables.purchases import Purchases
 
 
-class PurchasesRepository:
+class PurchasesRepositoryInterface(ABC):
+    @abstractmethod
+    async def purchase_stock(self, purchase_amount: PurchaseStockAmount) -> None: ...
+    @abstractmethod
+    async def get_purchases_total_amount_by_symbol(self, stock_symbol: str) -> float: ...
+
+
+class PurchasesRepository(PurchasesRepositoryInterface):
     def __init__(self, settings: Settings, session: AsyncSession) -> None:
         self.settings: Settings = settings
         self.session: AsyncSession = session

@@ -15,7 +15,7 @@ from app.app_config import Settings, get_settings
 
 settings: Settings = get_settings()
 
-postgres_url = URL.create(
+postgres_url: URL = URL.create(
     drivername=settings.postgres_drivername,
     username=settings.postgres_username,
     password=settings.postgres_password,
@@ -26,8 +26,9 @@ postgres_url = URL.create(
 
 
 class DatabaseSessionManager:
-    def __init__(self, host: str, engine_kwargs: dict[str, Any] = {}) -> None:
-        self._engine: AsyncEngine = create_async_engine(host, **engine_kwargs)
+    def __init__(self, host: str, engine_kwargs: dict[str, Any] | None = None) -> None:
+        self.engine_kwargs: dict[str, Any] = engine_kwargs or {}
+        self._engine: AsyncEngine = create_async_engine(host, **self.engine_kwargs)
         self._sessionmaker = async_sessionmaker(autocommit=False, bind=self._engine)
 
     async def close(self) -> None:

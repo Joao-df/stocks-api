@@ -1,4 +1,5 @@
 import logging
+from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from datetime import date
 
@@ -14,7 +15,12 @@ STOCK_DETAILS_ENDPOINT = "/investing/stock/{stock_symbol}"
 executor = ThreadPoolExecutor(max_workers=5)
 
 
-class OpenCloseStockRepository:
+class OpenCloseStockRepositoryInterface(ABC):
+    @abstractmethod
+    async def get_daily_open_close_sotck(self, stock_symbol: str, date: date) -> DailyOpenCloseStock: ...
+
+
+class OpenCloseStockRepository(OpenCloseStockRepositoryInterface):
     def __init__(self, settings: Settings) -> None:
         self.settings: Settings = settings
 

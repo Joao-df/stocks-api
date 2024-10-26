@@ -1,5 +1,6 @@
 import asyncio
 import logging
+from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
 from typing import List
@@ -35,7 +36,16 @@ executor = ThreadPoolExecutor(max_workers=5)
 class CatchByBotDetectionError(Exception): ...
 
 
-class MarketWatchRepository:
+class MarketWatchRepositoryInterface(ABC):
+    @abstractmethod
+    async def get_stock_performance_by_symbol(self, stock_symbol: str) -> PerformanceData: ...
+    @abstractmethod
+    async def get_stock_competitors_by_symbol(self, stock_symbol: str) -> list[CompetitorData]: ...
+    @abstractmethod
+    async def get_company_name_by_symbol(self, stock_symbol: str) -> str: ...
+
+
+class MarketWatchRepository(MarketWatchRepositoryInterface):
     def __init__(self, settings: Settings) -> None:
         self.settings: Settings = settings
 
