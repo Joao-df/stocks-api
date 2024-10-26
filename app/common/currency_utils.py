@@ -3,6 +3,17 @@ from decimal import Decimal
 
 
 def convert_currency_string(currency_str: str) -> dict:
+    """Converts a currency string into a dictionary containing the currency symbol and the converted value.
+
+    Args:
+        currency_str (str): A string representing the currency value with an optional suffix (T, B, M, K).
+
+    Returns:
+        dict: A dictionary with keys 'currency' and 'value', where 'currency' is the currency symbol and 'value' is the converted numerical value.
+
+    Raises:
+        ValueError: If the currency string has an invalid format.
+    """
     pattern = r"([^\d]*)([\d.]+)([TMBK]?)"
     match = re.match(pattern, currency_str.strip())
 

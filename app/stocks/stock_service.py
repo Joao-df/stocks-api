@@ -24,6 +24,15 @@ class StockService:
         self.purchases_repository: PurchasesRepository = PurchasesRepository(settings=settings, session=session)
 
     async def get_stock_by_symbol(self, stock_symbol: str, date: date) -> StockData:
+        """Retrieves stock data for a given stock symbol and date.
+
+        Args:
+            stock_symbol (str): The symbol of the stock to retrieve data for.
+            date (date): The date for which to retrieve the stock data.
+
+        Returns:
+            StockData: An object containing various data points related to the stock, including stock values, performance data, and competitors.
+        """
         daily_open_close_data: DailyOpenCloseStock = await self.open_close_stock_repository.get_daily_open_close_sotck(
             stock_symbol, date
         )
@@ -55,6 +64,15 @@ class StockService:
         return StockData.model_validate(return_data)
 
     async def purchase_stock(self, stock_symbol: str, purchase_amount: PurchaseRequestBody) -> None:
+        """Purchase a specific amount of stock for a given stock symbol.
+
+        Args:
+            stock_symbol (str): The symbol of the stock to purchase.
+            purchase_amount (PurchaseRequestBody): The amount to purchase along with the company code.
+
+        Returns:
+            None
+        """
         purchase_stock_amount: PurchaseStockAmount = PurchaseStockAmount.model_validate(
             purchase_amount.model_dump() | {"company_code": stock_symbol}
         )
