@@ -8,6 +8,7 @@ from typing import List
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
 from selenium import webdriver
+from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
@@ -76,11 +77,15 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
         return options
 
     def _close_subscriber_banner(self, driver: webdriver.Chrome) -> None:
-        banner: WebElement = driver.find_element(By.ID, "cx-scrim-wrapper")
-        if banner.is_displayed():
-            close_banner_btn: WebElement = banner.find_element(By.CLASS_NAME, "close-btn")
-            if close_banner_btn.is_displayed():
-                close_banner_btn.click()
+        try:
+            banner: WebElement = driver.find_element(By.ID, "cx-scrim-wrapper")
+        except NoSuchElementException:
+            return
+        else:
+            if banner.is_displayed():
+                close_banner_btn: WebElement = banner.find_element(By.CLASS_NAME, "close-btn")
+                if close_banner_btn.is_displayed():
+                    close_banner_btn.click()
 
     def _is_captcha_open(self, driver: webdriver.Chrome) -> bool:
         captcha_scripts: List[WebElement] = driver.find_elements(
