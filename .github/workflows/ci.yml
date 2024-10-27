@@ -42,4 +42,9 @@ jobs:
       # 6. Execução dos testes com pytest e geração de relatório de cobertura
       - name: Run tests
         run: |
-          POLYGON_API_KEY="" poetry run pytest --cov=.
+          POLYGON_API_KEY="" poetry run pytest --cov --cov-report=xml
+
+      - name: Upload results to Codecov
+        uses: codecov/codecov-action@v4
+        with:
+          token: ${{ secrets.CODECOV_TOKEN }}
