@@ -1,0 +1,77 @@
+classDiagram
+  class app {
+  }
+  class app_config {
+  }
+  class cache {
+  }
+  class common {
+  }
+  class currency_utils {
+  }
+  class datetime_utils {
+  }
+  class database {
+  }
+  class log_config {
+  }
+  class main {
+  }
+  class models {
+  }
+  class dto {
+  }
+  class daily_open_close_stock {
+  }
+  class stock_endpoint_models {
+  }
+  class stock_response {
+  }
+  class tables {
+  }
+  class base {
+  }
+  class purchases {
+  }
+  class repository {
+  }
+  class marketwatch_repository {
+  }
+  class open_close_stock_repository {
+  }
+  class purchases_repository {
+  }
+  class stocks {
+  }
+  class stock_router {
+  }
+  class stock_service {
+  }
+  cache --> app_config
+  database --> app_config
+  main --> cache
+  main --> database
+  main --> log_config
+  main --> stock_router
+  tables --> purchases
+  purchases --> base
+  marketwatch_repository --> app_config
+  marketwatch_repository --> currency_utils
+  marketwatch_repository --> stock_response
+  open_close_stock_repository --> app_config
+  open_close_stock_repository --> daily_open_close_stock
+  purchases_repository --> app_config
+  purchases_repository --> purchases
+  stock_router --> app_config
+  stock_router --> cache
+  stock_router --> datetime_utils
+  stock_router --> database
+  stock_router --> stock_endpoint_models
+  stock_router --> stock_response
+  stock_router --> stock_service
+  stock_service --> app_config
+  stock_service --> daily_open_close_stock
+  stock_service --> stock_response
+  stock_service --> marketwatch_repository
+  stock_service --> open_close_stock_repository
+  stock_service --> purchases_repository
