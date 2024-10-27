@@ -1,5 +1,8 @@
 # Stocks API
 
+![License](https://img.shields.io/github/license/Joao-df/stocks-api)
+![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)
+
 **Description**: This project is an API for querying and managing stock data, developed as a technical assignment for the company CIAL.
 
 
@@ -16,6 +19,10 @@
   - [Usage](#usage)
   - [Main Endpoints](#main-endpoints)
   - [Notes](#notes)
+  - [Pre-commit](#pre-commit)
+    - [Installation](#installation-1)
+    - [Configured Hooks](#configured-hooks)
+    - [Usage](#usage-1)
   - [License](#license)
 
 ## Overview
@@ -61,6 +68,10 @@ This API is built using **FastAPI** and Docker, with support for Redis caching, 
    ```
    docker-compose up
    ```
+   Then, install the dependencies:
+   ```
+   poetry install
+   ```
    Then, start the API:
    ```
    poetry run fastapi dev .\app\main.py
@@ -92,6 +103,34 @@ You will find detailed information about endpoints, parameters, and usage exampl
 
 - Docker Compose includes an instance of **selenium/standalone-chrome** configured as a remote driver, enabling the use of Selenium for data scraping.
 - Integrated middleware logs the execution time for each request, making performance monitoring easier.
+
+## Pre-commit
+
+This project uses [pre-commit](https://pre-commit.com/) to ensure code quality and standardization before each commit. Make sure you have `pre-commit` installed and configured in your environment so that the hooks run automatically.
+
+### Installation
+
+To set up the hooks defined in `.pre-commit-config.yaml`, use:
+
+```bash
+pre-commit install
+```
+
+### Configured Hooks
+
+- **Ruff**:
+  - `ruff`: Checks code for linting issues.
+  - `ruff-format`: Automatically formats the code according to defined rules.
+- **Commitizen**:
+  - Ensures commit messages follow a specific convention, helping maintain a consistent change history and facilitating changelog generation.
+
+### Usage
+
+The hooks will run automatically before each commit. You can also run them manually on all files with:
+
+```bash
+pre-commit run --all-files
+```
 
 ## License
 
