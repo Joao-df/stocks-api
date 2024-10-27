@@ -25,7 +25,6 @@ def mock_stock_service() -> Generator[dict[str, AsyncMock | MagicMock], Any, Non
         yield mock
 
 
-@pytest.mark.asyncio
 def test_get_stock(mock_stock_service: dict[str, AsyncMock | MagicMock]) -> None:
     mock_stock_service["get_stock_by_symbol"].return_value = AAPL_EXPECTED_STOCK
     _ = client.get("/stock/AAPL", params={"date": "2024-10-10"})
@@ -34,7 +33,6 @@ def test_get_stock(mock_stock_service: dict[str, AsyncMock | MagicMock]) -> None
     )
 
 
-@pytest.mark.asyncio
 def test_purchase_stock(mock_stock_service: dict[str, AsyncMock | MagicMock]) -> None:
     response: Response = client.post("/stock/AAPL", json={"amount": 10})
     mock_stock_service["purchase_stock"].assert_called_once_with(stock_symbol="AAPL", amount=10)

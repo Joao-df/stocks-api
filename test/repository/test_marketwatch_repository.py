@@ -17,7 +17,7 @@ def mock_get_stock_page_html(request: FixtureRequest) -> Generator[MagicMock | A
     filename = request.param
     with patch.object(MarketWatchRepository, "_async_get_stock_page_html") as mock:
         with open(f"./test/repository/marketwatch_html/{filename}", "r") as arq:
-            mock.return_value = BeautifulSoup(arq)
+            mock.return_value = BeautifulSoup(arq, "html.parser")
         yield mock
 
 
