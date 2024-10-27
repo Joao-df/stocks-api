@@ -35,4 +35,4 @@ def test_get_stock(mock_stock_service: dict[str, AsyncMock | MagicMock]) -> None
 def test_purchase_stock(mock_stock_service: dict[str, AsyncMock | MagicMock]) -> None:
     response: Response = client.post("/stock/AAPL", json={"amount": 10})
     mock_stock_service["purchase_stock"].assert_called_once_with(stock_symbol="AAPL", amount=10)
-    assert response.json() == {"message": "10.0 units of stock AAPL were added to your stock record."}
+    assert response.json() == {"message": "10 units of stock AAPL were added to your stock record."}
