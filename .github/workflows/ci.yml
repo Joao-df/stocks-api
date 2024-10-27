@@ -37,7 +37,7 @@ jobs:
       # 5. Verificação de linting com Ruff
       - name: Run Ruff (Lint)
         run: |
-          poetry run ruff .
+          poetry run ruff check .
 
       # 6. Execução dos testes com pytest e geração de relatório de cobertura
       - name: Run tests
