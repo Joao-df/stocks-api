@@ -13,7 +13,7 @@ class TestPurchasesRepository:
     async def test_add_purchase_record(self) -> None:
         amount = 100.0
         mock_session = MagicMock(spec=AsyncSession)
-        repo = PurchasesRepository(Settings(), mock_session)
+        repo = PurchasesRepository(Settings(polygon_api_key=""), mock_session)
 
         await repo.purchase_stock(company_code="AAPL", amount=amount)
 
@@ -29,7 +29,7 @@ class TestPurchasesRepository:
         amount = 150.0
         mock_session = MagicMock(spec=AsyncSession)
         mock_session.scalar.return_value = amount
-        repo = PurchasesRepository(Settings(), mock_session)
+        repo = PurchasesRepository(Settings(polygon_api_key=""), mock_session)
 
         total_amount = await repo.get_purchases_total_amount_by_symbol("AAPL")
 
@@ -39,7 +39,7 @@ class TestPurchasesRepository:
     async def test_return_zero_for_no_purchases(self) -> None:
         mock_session = MagicMock(spec=AsyncSession)
         mock_session.scalar.return_value = None
-        repo = PurchasesRepository(Settings(), mock_session)
+        repo = PurchasesRepository(Settings(polygon_api_key=""), mock_session)
 
         total_amount = await repo.get_purchases_total_amount_by_symbol("AAPL")
 
@@ -49,7 +49,7 @@ class TestPurchasesRepository:
     async def test_handle_commit_exception(self) -> None:
         mock_session = MagicMock(spec=AsyncSession)
         mock_session.commit.side_effect = Exception("DB error")
-        repo = PurchasesRepository(Settings(), mock_session)
+        repo = PurchasesRepository(Settings(polygon_api_key=""), mock_session)
 
         with pytest.raises(Exception, match="DB error"):
             await repo.purchase_stock(company_code="AAPL", amount=100)

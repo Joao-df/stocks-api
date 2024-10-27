@@ -24,7 +24,7 @@ def mock_get_stock_page_html(request: FixtureRequest) -> Generator[MagicMock | A
 class TestMarketWatchRepository:
     @pytest.mark.asyncio
     async def test_get_stock_performance_by_symbol_success(self, mock_get_stock_page_html: AsyncMock) -> None:
-        repo = MarketWatchRepository(Settings())
+        repo = MarketWatchRepository(Settings(polygon_api_key=""))
         result: PerformanceData = await repo.get_stock_performance_by_symbol("AAPL")
         assert result.model_dump() == {
             "five_days": -1.53,
@@ -36,7 +36,7 @@ class TestMarketWatchRepository:
 
     @pytest.mark.asyncio
     async def test_get_stock_competitors_by_symbol_success(self, mock_get_stock_page_html: AsyncMock) -> None:
-        repo = MarketWatchRepository(Settings())
+        repo = MarketWatchRepository(Settings(polygon_api_key=""))
         result: list[CompetitorData] = await repo.get_stock_competitors_by_symbol("AAPL")
 
         assert result[0].model_dump() == {
@@ -50,7 +50,7 @@ class TestMarketWatchRepository:
 
     @pytest.mark.asyncio
     async def test_get_company_name_by_symbol_success(self, mock_get_stock_page_html: AsyncMock) -> None:
-        repo = MarketWatchRepository(Settings())
+        repo = MarketWatchRepository(Settings(polygon_api_key=""))
         result = await repo.get_company_name_by_symbol("AAPL")
         assert result == "Apple Inc."
 
@@ -58,7 +58,7 @@ class TestMarketWatchRepository:
     async def test_returns_true_when_captcha_present(self) -> None:
         driver = MagicMock()
         driver.find_elements.return_value = [MagicMock()]
-        result = MarketWatchRepository(Settings())._is_captcha_open(driver)
+        result = MarketWatchRepository(Settings(polygon_api_key=""))._is_captcha_open(driver)
         assert result is True
 
     @pytest.mark.asyncio
@@ -71,6 +71,6 @@ class TestMarketWatchRepository:
         banner.find_element.return_value = close_btn
         close_btn.is_displayed.return_value = True
 
-        MarketWatchRepository(Settings())._close_subscriber_banner(driver)
+        MarketWatchRepository(Settings(polygon_api_key=""))._close_subscriber_banner(driver)
 
         close_btn.click.assert_called_once()
