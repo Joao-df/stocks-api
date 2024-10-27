@@ -161,12 +161,12 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
         Returns:
             BeautifulSoup: The parsed HTML content of the stock page.
         """
-        driver = webdriver.Remote(
+        with webdriver.Remote(
             command_executor=self.settings.remote_chrome_webdriver_address,
             options=self._chrome_options,
-        )
-        try:
+        ) as driver:
             uri: str = f"{self.settings.marketwatch_base_url}{STOCK_DETAILS_ENDPOINT.format(stock_symbol=stock_symbol)}"
+            driver.set_page_load_timeout(30)  # Set a timeout of 30 seconds
             driver.get(uri)
 
             if self._is_captcha_open(driver):
@@ -176,8 +176,6 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
             self._close_subscriber_banner(driver)
             page_html: str = driver.page_source
             return BeautifulSoup(page_html, "html.parser")
-        finally:
-            driver.quit()
 
     async def _async_get_stock_page_html(self, stock_symbol: str) -> BeautifulSoup:
         """Asynchronously retrieves the HTML content of a stock page using a provided stock symbol.
@@ -188,8 +186,11 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
         Returns:
             BeautifulSoup: The parsed HTML content of the stock page.
         """
-        loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
-        return await loop.run_in_executor(executor, self._get_stock_page_html, stock_symbol)
+        loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
+        try:
+            return await loop.run_in_executor(executor, self._get_stock_page_html, stock_symbol)
+        finally:
+            executor.shutdown(wait=True)
 
     async def get_stock_performance_by_symbol(self, stock_symbol: str) -> PerformanceData:
         stock_page: BeautifulSoup = await self._async_get_stock_page_html(stock_symbol)
@@ -203,10 +204,12 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
         return PerformanceData.model_validate(performance_data)
 
     async def get_stock_competitors_by_symbol(self, stock_symbol: str) -> list[CompetitorData]:
+        competitors_class = "Competitors"
+        logger.info(f"Retrieving competitors for stock symbol: {stock_symbol}")
         stock_page: BeautifulSoup = await self._async_get_stock_page_html(stock_symbol)
-        competitors_div = stock_page.find("div", class_="Competitors")
+        competitors_div = stock_page.find("div", class_=competitors_class)
         table_rows = competitors_div.find("tbody").find_all("tr")
-        return [
+        competitors_data: List[CompetitorData] = [
             CompetitorData.model_validate(
                 {
                     "name": table_row.find("a", class_="link").text,
@@ -215,6 +218,8 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
             )
             for table_row in table_rows
         ]
+        logger.info(f"Retrieved {len(competitors_data)} competitors for stock symbol: {stock_symbol}")
+        return competitors_data
 
     async def get_company_name_by_symbol(self, stock_symbol: str) -> str:
         stock_page: BeautifulSoup = await self._async_get_stock_page_html(stock_symbol)
