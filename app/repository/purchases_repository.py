@@ -4,13 +4,12 @@ from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.app_config import Settings
-from app.models.dto.stock_endpoint_models import PurchaseStockAmount
 from app.models.tables.purchases import Purchases
 
 
 class PurchasesRepositoryInterface(ABC):
     @abstractmethod
-    async def purchase_stock(self, purchase_amount: PurchaseStockAmount) -> None:
+    async def purchase_stock(self, company_code: str, amount: int) -> None:
         """
         Add a purchase record to the database.
 
@@ -26,7 +25,8 @@ class PurchasesRepositoryInterface(ABC):
         """Get the total purchase amount for a specific stock symbol.
 
         Args:
-            stock_symbol (str): The symbol of the stock to retrieve the total purchase amount for.
+            company_code (str): The code of the company for which the stock is being purchased.
+            amount (int): The quantity of stock being purchased.
 
         Returns:
             float: The total purchase amount for the specified stock symbol. Returns 0.0 if no amount is found.
@@ -38,13 +38,13 @@ class PurchasesRepository(PurchasesRepositoryInterface):
         self.settings: Settings = settings
         self.session: AsyncSession = session
 
-    async def purchase_stock(self, purchase_amount: PurchaseStockAmount) -> None:
-        purchases = Purchases(**purchase_amount.model_dump())
+    async def purchase_stock(self, company_code: str, amount: int) -> None:
+        purchases = Purchases(company_code=company_code, amount=amount)
         self.session.add(purchases)
         await self.session.commit()
 
-    async def get_purchases_total_amount_by_symbol(self, stock_symbol: str) -> float:
-        total_amount: float | None = await self.session.scalar(
+    async def get_purchases_total_amount_by_symbol(self, stock_symbol: str) -> int:
+        total_amount: int | None = await self.session.scalar(
             select(func.sum(Purchases.amount)).where(Purchases.company_code == stock_symbol)
         )
-        return total_amount if total_amount is not None else 0.0
+        return total_amount if total_amount is not None else 0

@@ -4,7 +4,6 @@ import pytest
 from pydantic import BaseModel
 
 from app.models.dto.daily_open_close_stock import DailyOpenCloseStock
-from app.models.dto.stock_endpoint_models import PurchaseStockAmount
 from app.models.dto.stock_response import CompetitorData, PerformanceData, StockData
 from app.stocks.stock_service import StockService
 from test.constants import (
@@ -99,10 +98,10 @@ class TestStockService:
         assert expected_stock.model_dump() == stock_data.model_dump()
 
     @pytest.mark.parametrize(
-        "symbol, amount, expected_call",
+        "symbol, amount",
         [
-            pytest.param("AAPL", 50, PurchaseStockAmount(amount=50.0, company_code="AAPL"), id="AAPL-50"),
-            pytest.param("GE", 100, PurchaseStockAmount(amount=100.0, company_code="GE"), id="GE-100"),
+            pytest.param("AAPL", 50, id="AAPL-50"),
+            pytest.param("GE", 100, id="GE-100"),
         ],
     )
     @pytest.mark.asyncio
@@ -110,7 +109,6 @@ class TestStockService:
         self,
         symbol: str,
         amount: float,
-        expected_call: PurchaseStockAmount,
         mock_purchases_repository: dict[str, MagicMock | AsyncMock],
     ) -> None:
         mock_purchase_stock: MagicMock | AsyncMock = mock_purchases_repository["purchase_stock"]
@@ -118,4 +116,4 @@ class TestStockService:
         stock_service = StockService(settings=MagicMock(), session=MagicMock())
         await stock_service.purchase_stock(symbol, amount)
 
-        mock_purchase_stock.assert_called_once_with(expected_call)
+        mock_purchase_stock.assert_called_once_with(company_code=symbol, amount=amount)

@@ -4,7 +4,6 @@ import pytest
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.app_config import Settings
-from app.models.dto.stock_endpoint_models import PurchaseStockAmount
 from app.models.tables.purchases import Purchases
 from app.repository.purchases_repository import PurchasesRepository
 
@@ -15,9 +14,8 @@ class TestPurchasesRepository:
         amount = 100.0
         mock_session = MagicMock(spec=AsyncSession)
         repo = PurchasesRepository(Settings(), mock_session)
-        purchase_amount = PurchaseStockAmount(company_code="AAPL", amount=amount)
 
-        await repo.purchase_stock(purchase_amount)
+        await repo.purchase_stock(company_code="AAPL", amount=amount)
 
         mock_session.add.assert_called_once()
         added_purchase = mock_session.add.call_args[0][0]
@@ -45,14 +43,13 @@ class TestPurchasesRepository:
 
         total_amount = await repo.get_purchases_total_amount_by_symbol("AAPL")
 
-        assert total_amount == 0.0
+        assert total_amount == 0
 
     @pytest.mark.asyncio
     async def test_handle_commit_exception(self) -> None:
         mock_session = MagicMock(spec=AsyncSession)
         mock_session.commit.side_effect = Exception("DB error")
         repo = PurchasesRepository(Settings(), mock_session)
-        purchase_amount = PurchaseStockAmount(company_code="AAPL", amount=100.0)
 
         with pytest.raises(Exception, match="DB error"):
-            await repo.purchase_stock(purchase_amount)
+            await repo.purchase_stock(company_code="AAPL", amount=100)
