@@ -31,7 +31,6 @@ from app.models.dto.stock_response import (
 logger: logging.Logger = logging.getLogger()
 OPEN_CLOSE_ENDPOINT = "/v1/open-close/{stock_symbol}/{date}?adjusted=true&apiKey={api_key}"
 STOCK_DETAILS_ENDPOINT = "/investing/stock/{stock_symbol}"
-executor = ThreadPoolExecutor(max_workers=5)
 
 
 class CatchByBotDetectionError(Exception): ...
@@ -105,6 +104,7 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
         # Add random user agent
         ua = UserAgent()
         user_agent = ua.random
+        logger.debug("User agent: %s", user_agent)
         options.add_argument(f"--user-agent={user_agent}")
 
         return options
@@ -165,6 +165,8 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
             command_executor=self.settings.remote_chrome_webdriver_address,
             options=self._chrome_options,
         ) as driver:
+            driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
+
             uri: str = f"{self.settings.marketwatch_base_url}{STOCK_DETAILS_ENDPOINT.format(stock_symbol=stock_symbol)}"
             driver.set_page_load_timeout(30)  # Set a timeout of 30 seconds
             driver.get(uri)
@@ -186,6 +188,7 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
         Returns:
             BeautifulSoup: The parsed HTML content of the stock page.
         """
+        executor = ThreadPoolExecutor(max_workers=5)
         loop: asyncio.AbstractEventLoop = asyncio.get_running_loop()
         try:
             return await loop.run_in_executor(executor, self._get_stock_page_html, stock_symbol)
