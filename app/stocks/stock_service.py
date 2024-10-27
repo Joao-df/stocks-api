@@ -63,7 +63,7 @@ class StockService:
 
         return StockData.model_validate(return_data)
 
-    async def purchase_stock(self, stock_symbol: str, amount: float) -> None:
+    async def purchase_stock(self, stock_symbol: str, amount: int) -> None:
         """Purchase a specific amount of stock for a given stock symbol.
 
         Args:

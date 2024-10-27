@@ -2,7 +2,7 @@ from pydantic import BaseModel
 
 
 class PurchaseRequestBody(BaseModel):
-    amount: float
+    amount: int
 
 
 class PurchaseStockAmount(PurchaseRequestBody):
