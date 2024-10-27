@@ -42,4 +42,4 @@ jobs:
       # 6. Execução dos testes com pytest e geração de relatório de cobertura
       - name: Run tests
         run: |
-          poetry run pytest --cov=.
+          POLYGON_API_KEY="" poetry run pytest --cov=.
