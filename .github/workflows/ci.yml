@@ -1,0 +1,45 @@
+name: CI Pipeline
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+    branches:
+      - main
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+
+    steps:
+      # 1. Checkout do código
+      - name: Check out code
+        uses: actions/checkout@v2
+
+      # 2. Configuração do Python
+      - name: Set up Python
+        uses: actions/setup-python@v2
+        with:
+          python-version: 3.11
+
+      # 3. Instalação do Poetry
+      - name: Install Poetry
+        run: |
+          curl -sSL https://install.python-poetry.org | python3 -
+          echo "::add-path::${HOME}/.local/bin"
+
+      # 4. Instalação das dependências do projeto
+      - name: Install dependencies
+        run: |
+          poetry install
+
+      # 5. Verificação de linting com Ruff
+      - name: Run Ruff (Lint)
+        run: |
+          poetry run ruff .
+
+      # 6. Execução dos testes com pytest e geração de relatório de cobertura
+      - name: Run tests
+        run: |
+          poetry run pytest --cov=.
