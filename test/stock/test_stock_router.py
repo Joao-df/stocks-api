@@ -7,6 +7,7 @@ from fastapi import FastAPI
 from fastapi.testclient import TestClient
 from httpx import Response
 
+from app.app_config import Settings, get_settings
 from app.stocks.stock_router import router
 from app.stocks.stock_service import StockService
 from test.constants import AAPL_EXPECTED_STOCK
@@ -14,6 +15,8 @@ from test.constants import AAPL_EXPECTED_STOCK
 app = FastAPI()
 app.include_router(router)
 client = TestClient(app)
+
+app.dependency_overrides[get_settings] = lambda: Settings(polygon_api_key="")
 
 
 @pytest.fixture(scope="function")
