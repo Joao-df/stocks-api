@@ -2,6 +2,8 @@
 
 ![License](https://img.shields.io/github/license/Joao-df/stocks-api)
 ![Python Version](https://img.shields.io/badge/python-3.11%2B-blue)
+![Build Status](https://github.com/Joao-df/stocks-api/actions/workflows/ci.yml/badge.svg)
+
 
 **Description**: This project is an API for querying and managing stock data, developed as a technical assignment for the company CIAL.
 
