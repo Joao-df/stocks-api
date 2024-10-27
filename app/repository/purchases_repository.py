@@ -10,9 +10,27 @@ from app.models.tables.purchases import Purchases
 
 class PurchasesRepositoryInterface(ABC):
     @abstractmethod
-    async def purchase_stock(self, purchase_amount: PurchaseStockAmount) -> None: ...
+    async def purchase_stock(self, purchase_amount: PurchaseStockAmount) -> None:
+        """
+        Add a purchase record to the database.
+
+        Parameters:
+        - purchase_amount: An instance of PurchaseStockAmount representing the purchase amount details.
+
+        Returns:
+        - None
+        """
+
     @abstractmethod
-    async def get_purchases_total_amount_by_symbol(self, stock_symbol: str) -> float: ...
+    async def get_purchases_total_amount_by_symbol(self, stock_symbol: str) -> float:
+        """Get the total purchase amount for a specific stock symbol.
+
+        Args:
+            stock_symbol (str): The symbol of the stock to retrieve the total purchase amount for.
+
+        Returns:
+            float: The total purchase amount for the specified stock symbol. Returns 0.0 if no amount is found.
+        """
 
 
 class PurchasesRepository(PurchasesRepositoryInterface):

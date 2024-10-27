@@ -53,6 +53,18 @@ class DatabaseSessionManager:
 
     @contextlib.asynccontextmanager
     async def session(self) -> AsyncIterator[AsyncSession]:
+        """Asynchronous context manager that yields an AsyncSession.
+
+        Raises:
+            Exception: If DatabaseSessionManager is not initialized.
+
+        Yields:
+            AsyncSession: An asynchronous session object.
+
+        Usage:
+            async with DatabaseSessionManager(host).session() as session:
+                <body>
+        """
         if self._sessionmaker is None:
             raise Exception("DatabaseSessionManager is not initialized")
 
@@ -70,6 +82,9 @@ sessionmanager = DatabaseSessionManager(postgres_url)
 
 
 async def get_session() -> AsyncGenerator[AsyncSession, Any]:
+    """
+    Asynchronous generator that yields a session from the DatabaseSessionManager.
+    """
     async with sessionmanager.session() as session:
         yield session
 

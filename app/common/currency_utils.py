@@ -1,8 +1,9 @@
 import re
 from decimal import Decimal
+from typing import Any
 
 
-def convert_currency_string(currency_str: str) -> dict:
+def convert_currency_string(currency_str: str) -> dict[str, Any]:
     """Converts a currency string into a dictionary containing the currency symbol and the converted value.
 
     Args:
@@ -15,7 +16,7 @@ def convert_currency_string(currency_str: str) -> dict:
         ValueError: If the currency string has an invalid format.
     """
     pattern = r"([^\d]*)([\d.]+)([TMBK]?)"
-    match = re.match(pattern, currency_str.strip())
+    match: re.Match[str] | None = re.match(pattern, currency_str.strip())
 
     if not match:
         raise ValueError("Invalid currency format")
@@ -30,6 +31,6 @@ def convert_currency_string(currency_str: str) -> dict:
         "": 1,  # No suffix
     }
 
-    multiplier = multipliers.get(suffix.upper(), 1)
-    value = Decimal(value_str) * Decimal(multiplier)
+    multiplier: int = multipliers.get(suffix.upper(), 1)
+    value: Decimal = Decimal(value_str) * Decimal(multiplier)
     return {"currency": currency_symbol, "value": float(value)}

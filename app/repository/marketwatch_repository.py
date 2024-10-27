@@ -39,11 +39,39 @@ class CatchByBotDetectionError(Exception): ...
 
 class MarketWatchRepositoryInterface(ABC):
     @abstractmethod
-    async def get_stock_performance_by_symbol(self, stock_symbol: str) -> PerformanceData: ...
+    async def get_stock_performance_by_symbol(self, stock_symbol: str) -> PerformanceData:
+        """
+        Retrieves the performance data for a stock symbol.
+
+        Args:
+            stock_symbol (str): The symbol of the stock to retrieve performance data for.
+
+        Returns:
+            PerformanceData: An object containing performance data for the stock symbol.
+        """
+
     @abstractmethod
-    async def get_stock_competitors_by_symbol(self, stock_symbol: str) -> list[CompetitorData]: ...
+    async def get_stock_competitors_by_symbol(self, stock_symbol: str) -> list[CompetitorData]:
+        """Retrieve a list of competitor data for a given stock symbol.
+
+        Args:
+            stock_symbol (str): The symbol of the stock to retrieve competitors for.
+
+        Returns:
+            list[CompetitorData]: A list of CompetitorData objects containing competitor names and market capitalizations.
+        """
+
     @abstractmethod
-    async def get_company_name_by_symbol(self, stock_symbol: str) -> str: ...
+    async def get_company_name_by_symbol(self, stock_symbol: str) -> str:
+        """
+        Retrieve the company name associated with the given stock symbol.
+
+        Args:
+            stock_symbol (str): The symbol of the stock to retrieve the company name for.
+
+        Returns:
+            str: The company name.
+        """
 
 
 class MarketWatchRepository(MarketWatchRepositoryInterface):
@@ -52,6 +80,11 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
 
     @property
     def _chrome_options(self) -> Options:
+        """
+        Returns the Chrome options based on the settings configuration.
+        Includes arguments for headless mode, incognito mode, user agent, and automation control.
+        Utilized by the MarketWatchRepository class for web scraping operations.
+        """
         options = webdriver.ChromeOptions()
         if self.settings.selenium_headless_mode:
             # run in headless mode
@@ -77,6 +110,12 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
         return options
 
     def _close_subscriber_banner(self, driver: webdriver.Chrome) -> None:
+        """
+        Closes the subscriber banner if it is displayed on the webpage.
+
+        Args:
+            driver (webdriver.Chrome): The Chrome driver instance used to access the webpage.
+        """
         try:
             banner: WebElement = driver.find_element(By.ID, "cx-scrim-wrapper")
         except NoSuchElementException:
@@ -88,6 +127,15 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
                     close_banner_btn.click()
 
     def _is_captcha_open(self, driver: webdriver.Chrome) -> bool:
+        """
+        Checks if a CAPTCHA script is present on the webpage loaded by the provided Chrome driver.
+
+        Args:
+            driver (webdriver.Chrome): The Chrome driver instance used to access the webpage.
+
+        Returns:
+            bool: True if a CAPTCHA script is found, False otherwise.
+        """
         captcha_scripts: List[WebElement] = driver.find_elements(
             By.XPATH, '/html/body/script[@src="https://ct.captcha-delivery.com/c.js"]'
         )
@@ -95,19 +143,29 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
 
     @lru_cache
     @retry(
-        stop=stop_after_attempt(5),
+        stop=stop_after_attempt(10),
         wait=wait_random(min=1, max=2),
         retry=retry_if_exception_type(CatchByBotDetectionError),
         before=before_log(logger, logging.INFO),
         after=after_log(logger, logging.INFO),
     )
     def _get_stock_page_html(self, stock_symbol: str) -> BeautifulSoup:
+        """
+        Retrieves the HTML content of a stock page using the provided stock symbol.
+        Utilizes caching and retry mechanisms with a maximum of 10 attempts.
+        Handles bot detection errors and closes subscriber banners if necessary.
+
+        Args:
+            stock_symbol (str): The symbol of the stock to retrieve the page for.
+
+        Returns:
+            BeautifulSoup: The parsed HTML content of the stock page.
+        """
         driver = webdriver.Remote(
             command_executor=self.settings.remote_chrome_webdriver_address,
             options=self._chrome_options,
         )
         try:
-            # Navigate to the URL
             uri: str = f"{self.settings.marketwatch_base_url}{STOCK_DETAILS_ENDPOINT.format(stock_symbol=stock_symbol)}"
             driver.get(uri)
 
@@ -122,6 +180,14 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
             driver.quit()
 
     async def _async_get_stock_page_html(self, stock_symbol: str) -> BeautifulSoup:
+        """Asynchronously retrieves the HTML content of a stock page using a provided stock symbol.
+
+        Args:
+            stock_symbol (str): The symbol of the stock to retrieve the page for.
+
+        Returns:
+            BeautifulSoup: The parsed HTML content of the stock page.
+        """
         loop: asyncio.AbstractEventLoop = asyncio.get_event_loop()
         return await loop.run_in_executor(executor, self._get_stock_page_html, stock_symbol)
 

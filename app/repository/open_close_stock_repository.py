@@ -17,7 +17,20 @@ executor = ThreadPoolExecutor(max_workers=5)
 
 class OpenCloseStockRepositoryInterface(ABC):
     @abstractmethod
-    async def get_daily_open_close_sotck(self, stock_symbol: str, date: date) -> DailyOpenCloseStock: ...
+    async def get_daily_open_close_sotck(self, stock_symbol: str, date: date) -> DailyOpenCloseStock:
+        """
+        Asynchronous method to retrieve daily open and close stock data for a given stock symbol and date.
+
+        Args:
+            stock_symbol (str): The symbol of the stock to retrieve data for.
+            date (date): The date for which the stock data is requested.
+
+        Returns:
+            DailyOpenCloseStock: An instance of DailyOpenCloseStock containing the retrieved stock data.
+
+        Raises:
+            HTTPException: If there is an internal error or the stock is not found.
+        """
 
 
 class OpenCloseStockRepository(OpenCloseStockRepositoryInterface):

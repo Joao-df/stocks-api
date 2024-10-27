@@ -26,8 +26,6 @@ async def get_stock(
 
     Parameters:
     - stock_symbol (str): The symbol of the stock to retrieve data for.
-    - session (AsyncSession): The database session dependency.
-    - settings (Settings): The application settings dependency.
     - date (date): The date for which to retrieve the stock data. Defaults to yesterday.
 
     Returns:
@@ -49,10 +47,8 @@ async def purchase_stock(
     """Endpoint to purchase a specified amount of a stock.
 
     Parameters:
-    - purchase_amount: The amount of the stock to purchase.
+    - request_body: The body of the request containing the amount of the stock to purchase.
     - stock_symbol: The symbol of the stock to purchase.
-    - session: The database session dependency.
-    - settings: The application settings dependency.
 
     Returns:
     - PurchaseResponse: A message confirming the purchase of the stock.

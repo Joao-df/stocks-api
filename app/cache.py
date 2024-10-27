@@ -12,6 +12,11 @@ settings: Settings = get_settings()
 
 
 async def init_cache() -> None:
+    """
+    Initialize the cache using the provided Redis URL and set the cache prefix to 'fastapi-cache'.
+
+    This function connects to the Redis server using the URL specified in the settings and initializes the FastAPI cache with the Redis backend.
+    """
     redis: aioredis.Redis[Any] = aioredis.from_url(settings.redis_url)
     FastAPICache.init(RedisBackend(redis), prefix="fastapi-cache")
 
