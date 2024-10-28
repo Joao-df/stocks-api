@@ -57,7 +57,10 @@ class TestMarketWatchRepository:
     @pytest.mark.asyncio
     async def test_returns_true_when_captcha_present(self) -> None:
         driver = MagicMock()
-        driver.find_elements.return_value = [MagicMock()]
+
+        with open("./test/repository/marketwatch_html/bot_detected.html", "r") as arq:
+            html = arq.read()
+        driver.page_source = html
         result = MarketWatchRepository(Settings(polygon_api_key=""))._is_captcha_open(driver)
         assert result is True
 
