@@ -77,3 +77,39 @@ class TestMarketWatchRepository:
         MarketWatchRepository(Settings(polygon_api_key=""))._close_subscriber_banner(driver)
 
         close_btn.click.assert_called_once()
+
+    @pytest.mark.asyncio
+    async def test_set_cookies_successfully(self) -> None:
+        mock_driver = MagicMock()
+        mock_driver.get = MagicMock()
+        mock_driver.add_cookie = MagicMock()
+        MarketWatchRepository.cookies = [{"name": "test", "value": "123"}]
+        repo = MarketWatchRepository(Settings(polygon_api_key=""))
+        repo._set_cookies(mock_driver)
+        mock_driver.add_cookie.assert_called_once_with({"name": "test", "value": "123"})
+
+    @pytest.mark.asyncio
+    async def test_save_cookies_from_valid_driver(self) -> None:
+        mock_driver = MagicMock()
+        mock_driver.get_cookies.return_value = [{"name": "test_cookie", "value": "test_value"}]
+        repository = MarketWatchRepository(Settings(polygon_api_key=""))
+        repository._save_cookies(mock_driver)
+        assert MarketWatchRepository.cookies == [{"name": "test_cookie", "value": "test_value"}]
+
+    @pytest.mark.asyncio
+    async def test_headless_mode_disabled(self) -> None:
+        repo = MarketWatchRepository(Settings(polygon_api_key="", selenium_headless_mode=False))
+        options = repo._chrome_options
+        assert "--headless=new" not in options.arguments
+
+    @pytest.mark.asyncio
+    async def test_validate_all_set_config(self) -> None:
+        repo = MarketWatchRepository(Settings(polygon_api_key="", selenium_headless_mode=True))
+        options = repo._chrome_options
+        assert "--headless=new" in options.arguments
+        assert "--incognito" in options.arguments
+        assert "--disable-blink-features=AutomationControlled" in options.arguments
+        assert "excludeSwitches" in options.experimental_options
+        assert "enable-automation" in options.experimental_options["excludeSwitches"]
+        assert "useAutomationExtension" in options.experimental_options
+        assert not options.experimental_options["useAutomationExtension"]
