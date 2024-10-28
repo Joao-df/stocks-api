@@ -49,7 +49,7 @@ class OpenCloseStockRepository(OpenCloseStockRepositoryInterface):
             case 200:
                 return DailyOpenCloseStock.model_validate(response_data.json())
             case 404:
-                detail = f"Stock {stock_symbol} not found"
+                detail = f"Stock {stock_symbol} not found for the given date ({date})"
                 logger.warning(detail)
                 raise HTTPException(status_code=404, detail=detail)
             case _:
