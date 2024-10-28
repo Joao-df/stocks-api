@@ -1,5 +1,7 @@
 import asyncio
 import logging
+import random
+import time
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
@@ -12,6 +14,7 @@ from selenium.common.exceptions import NoSuchElementException
 from selenium.webdriver.chrome.options import Options
 from selenium.webdriver.common.by import By
 from selenium.webdriver.remote.webelement import WebElement
+from selenium.webdriver.support.wait import WebDriverWait
 from tenacity import (
     after_log,
     before_log,
@@ -134,13 +137,14 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
         """
         try:
             banner: WebElement = driver.find_element(By.ID, "cx-scrim-wrapper")
+            wait = WebDriverWait(driver, timeout=2)
+            wait.until(lambda d: banner.is_displayed())
         except NoSuchElementException:
             return
         else:
-            if banner.is_displayed():
-                close_banner_btn: WebElement = banner.find_element(By.CLASS_NAME, "close-btn")
-                if close_banner_btn.is_displayed():
-                    close_banner_btn.click()
+            close_banner_btn: WebElement = banner.find_element(By.CLASS_NAME, "close-btn")
+            if close_banner_btn.is_displayed():
+                close_banner_btn.click()
 
     def _is_captcha_open(self, driver: webdriver.Chrome) -> bool:
         """
@@ -175,6 +179,9 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
         """
         MarketWatchRepository.cookies = driver.get_cookies()
 
+    def _random_sleep(self) -> None:
+        time.sleep(random.uniform(0.5, 3.5))
+
     @lru_cache
     @retry(
         stop=stop_after_attempt(10),
@@ -202,10 +209,15 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
             driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
             driver.maximize_window()
             driver.set_page_load_timeout(60)
+            driver.implicitly_wait(2)
             self._set_cookies(driver)
+
+            self._random_sleep()
+
             uri: str = f"{self.settings.marketwatch_base_url}{STOCK_DETAILS_ENDPOINT.format(stock_symbol=stock_symbol)}"
             driver.get(uri)
 
+            self._random_sleep()
             if self._is_captcha_open(driver):
                 logger.warning("Catch by bot detection.")
                 raise CatchByBotDetectionError()
