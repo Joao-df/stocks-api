@@ -136,10 +136,7 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
         Returns:
             bool: True if a CAPTCHA script is found, False otherwise.
         """
-        captcha_scripts: List[WebElement] = driver.find_elements(
-            By.XPATH, '/html/body/script[@src="https://ct.captcha-delivery.com/c.js"]'
-        )
-        return bool(captcha_scripts)
+        return "captcha-delivery" in driver.page_source
 
     @lru_cache
     @retry(
@@ -166,7 +163,7 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
             options=self._chrome_options,
         ) as driver:
             driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
-
+            driver.maximize_window()
             uri: str = f"{self.settings.marketwatch_base_url}{STOCK_DETAILS_ENDPOINT.format(stock_symbol=stock_symbol)}"
             driver.set_page_load_timeout(30)  # Set a timeout of 30 seconds
             driver.get(uri)
