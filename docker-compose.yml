@@ -54,5 +54,4 @@ services:
 networks:
   default:
     name: local-network
-    external: true
     driver: bridge
