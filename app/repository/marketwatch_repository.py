@@ -3,7 +3,7 @@ import logging
 from abc import ABC, abstractmethod
 from concurrent.futures import ThreadPoolExecutor
 from functools import lru_cache
-from typing import List
+from typing import Any, ClassVar, List
 
 from bs4 import BeautifulSoup
 from fake_useragent import UserAgent
@@ -31,6 +31,20 @@ from app.models.dto.stock_response import (
 logger: logging.Logger = logging.getLogger()
 OPEN_CLOSE_ENDPOINT = "/v1/open-close/{stock_symbol}/{date}?adjusted=true&apiKey={api_key}"
 STOCK_DETAILS_ENDPOINT = "/investing/stock/{stock_symbol}"
+INITIAL_COOKIES_VALUE: list[dict[str, Any]] = [
+    {
+        "domain": ".marketwatch.com",
+        "hostOnly": False,
+        "httpOnly": False,
+        "name": "datadome",
+        "path": "/",
+        "sameSite": "Lax",
+        "secure": True,
+        "session": False,
+        "storeId": "0",
+        "value": "Zx~2lSVM4otlHRuJdSmuaWEFopnrcmo5f58eaqgvFdj3iSVkbdNzEuaVjIVPpZoiAR_n3obvgc7vzjrDTaJs163lH5vb2Pz6qlOWA0PXuuZ4wvL3z8QZplcsCZwUGAaV",
+    },
+]
 
 
 class CatchByBotDetectionError(Exception): ...
@@ -74,6 +88,8 @@ class MarketWatchRepositoryInterface(ABC):
 
 
 class MarketWatchRepository(MarketWatchRepositoryInterface):
+    cookies: ClassVar[list[dict[str, Any]] | None] = INITIAL_COOKIES_VALUE
+
     def __init__(self, settings: Settings) -> None:
         self.settings: Settings = settings
 
@@ -138,6 +154,27 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
         """
         return "captcha-delivery" in driver.page_source
 
+    def _set_cookies(self, driver: webdriver.Chrome) -> None:
+        """
+        Sets cookies for the provided Chrome driver by adding cookies from the MarketWatchRepository class if available.
+
+        Args:
+            driver (webdriver.Chrome): The Chrome driver instance to set cookies for.
+        """
+        driver.get(self.settings.marketwatch_base_url)
+        if (cookies := MarketWatchRepository.cookies) is not None:
+            for cookie in cookies:
+                driver.add_cookie(cookie)
+
+    def _save_cookies(self, driver: webdriver.Chrome) -> None:
+        """
+        Save the cookies from the WebDriver to the MarketWatchRepository class variable.
+
+        Args:
+            driver (webdriver.Chrome): The Chrome WebDriver instance.
+        """
+        MarketWatchRepository.cookies = driver.get_cookies()
+
     @lru_cache
     @retry(
         stop=stop_after_attempt(10),
@@ -164,8 +201,9 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
         ) as driver:
             driver.execute_script("Object.defineProperty(navigator, 'webdriver', {get: () => undefined})")
             driver.maximize_window()
+            driver.set_page_load_timeout(60)
+            self._set_cookies(driver)
             uri: str = f"{self.settings.marketwatch_base_url}{STOCK_DETAILS_ENDPOINT.format(stock_symbol=stock_symbol)}"
-            driver.set_page_load_timeout(30)  # Set a timeout of 30 seconds
             driver.get(uri)
 
             if self._is_captcha_open(driver):
@@ -174,6 +212,7 @@ class MarketWatchRepository(MarketWatchRepositoryInterface):
 
             self._close_subscriber_banner(driver)
             page_html: str = driver.page_source
+            self._save_cookies(driver)
             return BeautifulSoup(page_html, "html.parser")
 
     async def _async_get_stock_page_html(self, stock_symbol: str) -> BeautifulSoup:
