@@ -74,6 +74,19 @@ This API is built using **FastAPI** and Docker, with support for Redis caching, 
    ```
    Then, install the dependencies:
    ```
+   # Create the virtual env
+   python -m venv .venv
+
+   # Activate the venv (linux)
+   source env/bin/activate
+
+   # Activate the venv (Windows)
+   .\.venv\Scripts\activate
+   
+   # Install poetry
+   pip install poetry
+   
+   # Install the dependencies
    poetry install
    ```
    Then, start the API:
